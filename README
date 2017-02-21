@@ -1,0 +1,3 @@
+.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol, not HTTP wrapper unlike official JDBC driver.
+
+Драйвер .NET для Yandex ClickHouse. Полностью управляемая рализация родного протокола ClickHouse, в отличии от офицаильного JDBC драйвера, работающего поверх HTTP.

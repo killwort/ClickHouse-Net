@@ -1,0 +1,76 @@
+﻿$namespace=ClickHouse.Ado.Impl.ATG.Insert
+using System.Collections.Generic;
+COMPILER Insert
+public enum ConstType{String,Number,Parameter};
+internal IEnumerable<string> fieldList;
+internal IEnumerable<Tuple<string,ConstType> > valueList;
+internal string oneParam,tableName;
+IGNORECASE
+CHARACTERS
+letter='A'..'Z'+'a'..'z'+'_'.
+digit='0'..'9'.
+nonEscaped=ANY-"'"-"\\".
+TOKENS
+ident=letter{letter|digit}.
+stringValue="'" {nonEscaped|"\\\\"|"\\'"} "'".
+numValue=["-"|"+"]((digit{digit}["."{digit}])|("."digit{digit})).
+insert="INSERT".
+values="VALUES".
+into="INTO".
+IGNORE
+'\r'+'\n'+'\t'
+PRODUCTIONS
+Field<. out string name .>
+=
+	ident	(. name=t.val; .)
+.
+
+FieldList<. out IEnumerable<string> elements .>	(. var rv=new List<string>(); elements=rv; string elem; IEnumerable<string> inner; .)
+=
+	Field<out elem>	(. rv.Add(elem); .)
+	[
+	","
+	FieldList<out inner>	(. rv.AddRange(inner); .)
+	]
+.
+
+Parameter< out string name >
+=
+	("@"|":")
+	ident	(. name=t.val; .)
+.
+
+Value<. out Tuple<string,ConstType> val .>	(. val = null; string paramName=null; .)
+=
+	stringValue	(. val=Tuple.Create(t.val,ConstType.String); .)
+	| Parameter<out paramName>	(. val=Tuple.Create(paramName,ConstType.Parameter); .)
+	| numValue	(. val=Tuple.Create(t.val,ConstType.Number); .)
+.
+
+ValueList<. out IEnumerable<Tuple<string,ConstType> > elements .>	(. var rv=new List<Tuple<string,ConstType> >(); elements=rv; Tuple<string,ConstType> elem; IEnumerable<Tuple<string,ConstType> > inner; .)
+=
+	Value<out elem>	(. rv.Add(elem); .)
+	[
+	","
+	ValueList<out inner>	(. rv.AddRange(inner); .)
+	]
+.
+
+Insert	(.  .)
+=
+	insert
+	into
+	Field<out tableName>
+	"("
+	FieldList<out fieldList>
+	")"
+	values
+	(
+		Parameter<out oneParam>
+		|	"(" 
+			ValueList<out valueList>	 
+			")"
+	)
+	{ ";" }	
+.
+END Insert.

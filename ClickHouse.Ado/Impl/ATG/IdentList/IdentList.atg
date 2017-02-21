@@ -1,0 +1,33 @@
+﻿$namespace=ClickHouse.Ado.Impl.ATG.IdentList
+using System.Collections.Generic;
+COMPILER IdentList
+internal IEnumerable<string > result;
+IGNORECASE
+CHARACTERS
+letter='A'..'Z'+'a'..'z'.
+digit='0'..'9'.
+nonEscaped=ANY-"'"-"\\".
+TOKENS
+ident=letter{letter|digit}.
+IGNORE
+'\r'+'\n'+'\t'
+PRODUCTIONS
+Element<. out string name .>	(. name = null; .)
+=
+	ident	(. name=t.val; .)
+.
+
+ElementList<. out IEnumerable<string > elements .>	(. var rv=new List<string >(); elements=rv; string elem; IEnumerable<string > inner; .)
+=
+	Element<out elem>	(. rv.Add(elem); .)
+	[
+	","
+	ElementList<out inner>	(. rv.AddRange(inner); .)
+	]
+.
+
+IdentList	(. IEnumerable<string > elems; .)
+=
+	ElementList<out elems>	(. result = elems; .)
+.
+END IdentList.

@@ -1,0 +1,36 @@
+﻿$namespace=ClickHouse.Ado.Impl.ATG.Enums
+using System.Collections.Generic;
+COMPILER Enums
+internal IEnumerable<Tuple<string,int> > result;
+IGNORECASE
+CHARACTERS
+letter='A'..'Z'+'a'..'z'.
+digit='0'..'9'.
+nonEscaped=ANY-"'"-"\\".
+TOKENS
+ident="'" {nonEscaped|"\\\\"|"\\'"} "'".
+value=["-"|"+"]digit{digit}.
+IGNORE
+'\r'+'\n'+'\t'
+PRODUCTIONS
+Element<. out Tuple<string,int> name .>	(. name = null; string n; .)
+=
+	ident	(. n=t.val; .)
+	"="
+	value	(. name=Tuple.Create(n,int.Parse(t.val)); .)
+.
+
+ElementList<. out IEnumerable<Tuple<string,int> > elements .>	(. var rv=new List<Tuple<string,int> >(); elements=rv; Tuple<string,int> elem; IEnumerable<Tuple<string,int> > inner; .)
+=
+	Element<out elem>	(. rv.Add(elem); .)
+	[
+	","
+	ElementList<out inner>	(. rv.AddRange(inner); .)
+	]
+.
+
+Enums	(. IEnumerable<Tuple<string,int> > elems; .)
+=
+	ElementList<out elems>	(. result = elems; .)
+.
+END Enums.
