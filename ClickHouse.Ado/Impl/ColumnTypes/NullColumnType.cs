@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using ClickHouse.Ado.Impl.ATG.Insert;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
@@ -44,5 +45,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             return 0;
         }
 
+        public override void ValuesFromConst(IEnumerable objects)
+        {
+            
+        }
     }
 }

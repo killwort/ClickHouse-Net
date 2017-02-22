@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
@@ -69,6 +70,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override long IntValue(int currentRow)
         {
             throw new InvalidCastException();
+        }
+
+        public override void ValuesFromConst(IEnumerable objects)
+        {
+            Data = objects.Cast<DateTime>().ToArray();
         }
     }
 }

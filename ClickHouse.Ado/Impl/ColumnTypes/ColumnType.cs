@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -92,5 +93,6 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public abstract void ValueFromParam(ClickHouseParameter parameter);
         public abstract object Value(int currentRow);
         public abstract long IntValue(int currentRow);
+        public abstract void ValuesFromConst(IEnumerable objects);
     }
 }

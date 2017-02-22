@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using ClickHouse.Ado;
 
 namespace ClickHouse.Test
@@ -32,7 +33,18 @@ namespace ClickHouse.Test
                     Console.WriteLine();
                 } while (reader.NextResult());
             }
-            cnn.CreateCommand("INSERT INTO test_data (date,time,user_id,email,data)values('2017-02-20','2017-02-20 12:33:00',2,'aaaa','');").ExecuteNonQuery();
+            var cmd=cnn.CreateCommand("INSERT INTO test_data (date,time,user_id,email,data)values @bulk;");
+            cmd.Parameters.Add(new ClickHouseParameter
+                {
+                    DbType = DbType.Object,
+                    ParameterName="bulk",
+                    Value=new[]
+                    {
+                        new object[] {DateTime.Now,DateTime.Now,1ul,"aaaa@bbb.com","dsdsds"},
+                        new object[] {DateTime.Now.AddHours(-1),DateTime.Now.AddHours(-1),2ul,"zzzz@xxx.com","qwqwqwq"},
+                    }
+                });
+            cmd.ExecuteNonQuery();
         }
     }
 }

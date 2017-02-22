@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Data;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using Buffer = System.Buffer;
@@ -69,6 +71,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override long IntValue(int currentRow)
         {
             return Convert.ToInt64(Data[currentRow]);
+        }
+
+        public override void ValuesFromConst(IEnumerable objects)
+        {
+            Data = objects.Cast<T>().ToArray();
         }
     }
 }

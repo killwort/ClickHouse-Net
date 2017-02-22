@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Data;
 using System.Data.SqlTypes;
 using System.Diagnostics;
@@ -61,6 +62,13 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             if(Nulls[currentRow])
                 throw new SqlNullValueException();
             return InnerType.IntValue(currentRow);
+        }
+
+        public override void ValuesFromConst(IEnumerable objects)
+        {
+            InnerType.ValuesFromConst(objects);
+            Nulls=new bool[InnerType.Rows];
+            //Data = objects.Cast<DateTime>().ToArray();
         }
 
         public bool IsNull(int currentRow)

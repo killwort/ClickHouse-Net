@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using ClickHouse.Ado.Impl.ATG.Insert;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
@@ -48,6 +49,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override long IntValue(int currentRow)
         {
             throw new InvalidCastException();
+        }
+
+        public override void ValuesFromConst(IEnumerable objects)
+        {
+            throw new NotImplementedException();
         }
     }
 }

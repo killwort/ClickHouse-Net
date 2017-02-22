@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -60,17 +62,45 @@ namespace ClickHouse.Ado
 
                 _clickHouseConnection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false);
                 var schema = _clickHouseConnection.Formatter.ReadSchema();
-                if (schema.Columns.Count != insertParser.valueList.Count())
-                    throw new FormatException($"Value count mismatch. Server expected {schema.Columns.Count} and query contains {insertParser.valueList.Count()}.");
-                for (var i = 0; i < insertParser.valueList.Count(); i++)
+                if (insertParser.oneParam != null)
                 {
-                    var val = insertParser.valueList.ElementAt(i);
-                    if (val.Item2 == Parser.ConstType.Parameter)
-                        schema.Columns[i].Type.ValueFromParam(Parameters[val.Item1]);
-                    else
-                        schema.Columns[i].Type.ValueFromConst(val.Item1, val.Item2);
+                    var table = ((IEnumerable) Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
+                    var colCount=table.First().OfType<object>().Count();
+                    if(colCount!=schema.Columns.Count)
+                        throw new FormatException($"Column count in parameter table ({colCount}) doesn't match column count in schema ({schema.Columns.Count}).");
+                    var cl = new List<List<object>>(colCount);
+                    for(var i=0;i<colCount;i++)
+                        cl.Add(new List<object>());
+                    var index=0;
+                    cl = table.Aggregate(cl, (colList, row) =>
+                    {
+                        index = 0;
+                        foreach (var cval in row)
+                        {
+                            colList[index++].Add(cval);
+                        }
+                        return colList;
+                    });
+                    index = 0;
+                    foreach (var col in schema.Columns)
+                    {
+                        col.Type.ValuesFromConst(cl[index++]);
+                    }
                 }
-                _clickHouseConnection.Formatter.SendBlocks(new[] {schema});
+                else
+                {
+                    if (schema.Columns.Count != insertParser.valueList.Count())
+                        throw new FormatException($"Value count mismatch. Server expected {schema.Columns.Count} and query contains {insertParser.valueList.Count()}.");
+                    for (var i = 0; i < insertParser.valueList.Count(); i++)
+                    {
+                        var val = insertParser.valueList.ElementAt(i);
+                        if (val.Item2 == Parser.ConstType.Parameter)
+                            schema.Columns[i].Type.ValueFromParam(Parameters[val.Item1]);
+                        else
+                            schema.Columns[i].Type.ValueFromConst(val.Item1, val.Item2);
+                    }
+                }
+                _clickHouseConnection.Formatter.SendBlocks(new[] { schema });
             }
             else
             {
