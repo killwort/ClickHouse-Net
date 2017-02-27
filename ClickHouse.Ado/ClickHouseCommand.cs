@@ -110,7 +110,7 @@ namespace ClickHouse.Ado
             _clickHouseConnection.Formatter.ReadResponse();
         }
 
-        private static readonly Regex ParamRegex=new Regex("[@:](?<n>[a-z_][a-z0-9_])",RegexOptions.Compiled|RegexOptions.IgnoreCase);
+        private static readonly Regex ParamRegex=new Regex("[@:](?<n>[a-z_][a-z0-9_]*)",RegexOptions.Compiled|RegexOptions.IgnoreCase);
         private string SubstituteParameters(string commandText)
         {
             return ParamRegex.Replace(commandText, m => Parameters[m.Groups["n"].Value].AsSubstitute());
