@@ -18,7 +18,9 @@ namespace ClickHouse.Ado.Impl.Compress
                 case "zstd":
                     throw new NotImplementedException();
                     //Actually server doesn't interpret this well. Maybe ZSTD implementation is slightly different?
+#if false
                     return new ZstdCompressor();
+#endif
                 case "lz4hc":
                     throw new NotImplementedException();
                     //Actually server doesn't interpret this well. Maybe LZ4HC implementation is slightly different?

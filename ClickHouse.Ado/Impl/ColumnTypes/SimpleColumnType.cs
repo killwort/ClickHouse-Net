@@ -29,7 +29,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             Buffer.BlockCopy(bytes,0,Data,0, itemSize * rows);
         }
 
-        public override int Rows => Data.Length;
+        public override int Rows => Data?.Length ?? 0;
 
         public override string AsClickHouseType()
         {

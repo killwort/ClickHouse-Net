@@ -28,7 +28,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             }
         }
 
-        public override int Rows => Data.Length;
+        public override int Rows => Data?.Length ?? 0;
         public override string AsClickHouseType()
         {
             return "String";

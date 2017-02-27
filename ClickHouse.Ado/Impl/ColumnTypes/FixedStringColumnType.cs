@@ -24,7 +24,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
                 Data[i] = Encoding.UTF8.GetString(bytes, (int) (i*Length), (int) Length);
         }
 
-        public override int Rows => Data.Length;
+        public override int Rows => Data?.Length ?? 0;
 
         public override string AsClickHouseType()
         {

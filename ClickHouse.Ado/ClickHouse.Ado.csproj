@@ -38,18 +38,11 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="ZstdNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ZstdNet.1.0.0\lib\net45\ZstdNet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdoExtensions.cs" />
     <Compile Include="ClickHouseCommand.cs" />
     <Compile Include="ClickHouseConnection.cs" />
     <Compile Include="ClickHouseConnectionSettings.cs" />

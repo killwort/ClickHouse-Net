@@ -34,7 +34,6 @@ namespace ClickHouse.Ado.Impl
         public override int Read(byte[] buffer, int offset, int count)
         {
             var rv= _baseStream.Read(buffer, offset, count);
-            Trace.WriteLine($"Read {rv} bytes out of requested {count}: {buffer.Skip(offset).Take(rv).Aggregate(new StringBuilder(), (builder, b) => builder.Append(b.ToString("X2")).Append(' '))}");
             return rv;
         }
 

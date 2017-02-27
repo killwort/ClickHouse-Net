@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using ClickHouse.Ado.Impl.Data;
-
+//This may actually work with ZStdNet from NuGet
+#if false
 namespace ClickHouse.Ado.Impl.Compress
 {
     class ZstdCompressor : HashingCompressor
@@ -49,3 +50,4 @@ namespace ClickHouse.Ado.Impl.Compress
 
     }
 }
+#endif

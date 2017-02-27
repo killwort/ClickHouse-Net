@@ -101,11 +101,9 @@ namespace ClickHouse.Ado.Impl
 
                 if ((b & 0x80) == 0)
                 {
-                    Trace.WriteLine($"Read UINT {x}");
                     return x;
                 }
             }
-            Trace.WriteLine($"Read UINT {x}");
             return x;
         }
         internal void WriteString(string s)
@@ -122,7 +120,6 @@ namespace ClickHouse.Ado.Impl
             if (len > int.MaxValue)
                 throw new ArgumentException("Server sent too long string.");
             var rv = Encoding.UTF8.GetString(ReadBytes((int)len));
-            Trace.WriteLine($"Read string {rv}");
             return rv;
         }
 
@@ -136,7 +133,6 @@ namespace ClickHouse.Ado.Impl
                 read += _ioStream.Read(bytes, read, i - read);
             }
             while (read < i);
-            Trace.WriteLine($"Read RAW {bytes.Aggregate(new StringBuilder(), (builder, b) => builder.Append(b.ToString("X2")).Append(' '))}");
             return bytes;
         }
 

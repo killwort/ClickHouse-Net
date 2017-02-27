@@ -38,8 +38,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             }
         }
 
-        public override int Rows => Data.Length;
-        
+        public override int Rows => Data?.Length ?? 0;
+
         public override string AsClickHouseType()
         {
             return $"Enum{BaseSize}({string.Join(",", Values.Select(x => $"{ProtocolFormatter.EscapeStringValue(x.Item1)}={x.Item2}"))})";

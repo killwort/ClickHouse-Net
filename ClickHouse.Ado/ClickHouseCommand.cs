@@ -139,8 +139,12 @@ namespace ClickHouse.Ado
         {
             using (var reader = ExecuteReader())
             {
-                if (!reader.Read()) return null;
-                return reader.GetValue(0);
+                do
+                {
+                    if (!reader.Read()) continue;
+                    return reader.GetValue(0);
+                } while (reader.NextResult());
+                return null;
             }
         }
 

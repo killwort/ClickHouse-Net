@@ -42,7 +42,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             return "DateTime";
         }
 
-        public override int Rows => Data.Length;
+        public override int Rows => Data?.Length ?? 0;
 
         public override void ValueFromConst(string value, Parser.ConstType typeHint)
         {
