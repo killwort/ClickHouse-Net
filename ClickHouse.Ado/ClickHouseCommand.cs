@@ -50,7 +50,9 @@ namespace ClickHouse.Ado
         private void Execute(bool readResponse)
         {
             var insertParser = new Impl.ATG.Insert.Parser(new Impl.ATG.Insert.Scanner(new MemoryStream(Encoding.UTF8.GetBytes(CommandText))));
+            insertParser.errors.errorStream=new StringWriter();
             insertParser.Parse();
+            
             if (insertParser.errors.count == 0)
             {
                 var xText = new StringBuilder("INSERT INTO ");
@@ -110,10 +112,10 @@ namespace ClickHouse.Ado
             _clickHouseConnection.Formatter.ReadResponse();
         }
 
-        private static readonly Regex ParamRegex=new Regex("[@:](?<n>[a-z_][a-z0-9_]*)",RegexOptions.Compiled|RegexOptions.IgnoreCase);
+        private static readonly Regex ParamRegex=new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|:)",RegexOptions.Compiled|RegexOptions.IgnoreCase);
         private string SubstituteParameters(string commandText)
         {
-            return ParamRegex.Replace(commandText, m => Parameters[m.Groups["n"].Value].AsSubstitute());
+            return ParamRegex.Replace(commandText, m => m.Groups["n"].Value == ":" ? ":" : Parameters[m.Groups["n"].Value].AsSubstitute());
         }
 
         public int ExecuteNonQuery()

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.Test", "ClickHou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.Ado", "ClickHouse.Ado\ClickHouse.Ado.csproj", "{28629CF3-7958-48BF-BD52-A4314C762F9F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.isql", "ConsoleApplication1\ClickHouse.isql.csproj", "{747006A5-5160-4A18-B798-058BB3DCA4C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{28629CF3-7958-48BF-BD52-A4314C762F9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28629CF3-7958-48BF-BD52-A4314C762F9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28629CF3-7958-48BF-BD52-A4314C762F9F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{747006A5-5160-4A18-B798-058BB3DCA4C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{747006A5-5160-4A18-B798-058BB3DCA4C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{747006A5-5160-4A18-B798-058BB3DCA4C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{747006A5-5160-4A18-B798-058BB3DCA4C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
