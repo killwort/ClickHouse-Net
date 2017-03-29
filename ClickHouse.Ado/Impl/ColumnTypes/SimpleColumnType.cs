@@ -33,6 +33,15 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override string AsClickHouseType()
         {
+            if (typeof(T) == typeof(double))
+                return "Float64";
+            if (typeof(T) == typeof(float))
+                return "Float32";
+            if (typeof(T) == typeof(byte))
+                return "UInt8";
+            if (typeof(T) == typeof(sbyte))
+                return "Int8";
+
             return typeof(T).Name;
         }
 
