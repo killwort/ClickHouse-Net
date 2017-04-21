@@ -8,10 +8,14 @@ namespace ClickHouse.Ado.Impl
     internal class UnclosableStream : Stream
     {
         private readonly Stream _baseStream;
-        public override void Close()
+
+#if !NETSTANDARD15
+		public override void Close()
         {
         }
-        public UnclosableStream(Stream baseStream)
+#endif
+
+		public UnclosableStream(Stream baseStream)
         {
             _baseStream = baseStream;
         }

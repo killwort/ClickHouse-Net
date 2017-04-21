@@ -69,8 +69,12 @@ public class Buffer {
 	
 	protected void Close() {
 		if (!isUserStream && stream != null) {
-			stream.Close();
-			stream = null;
+#if NETSTANDARD15
+				stream.Dispose();
+#else
+				stream.Close();
+#endif
+				stream = null;
 		}
 	}
 	

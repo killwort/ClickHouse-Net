@@ -12,8 +12,12 @@ namespace ClickHouse.Ado
 
         static ClickHouseConnectionSettings()
         {
-            Properties = typeof(ClickHouseConnectionSettings).GetProperties().ToDictionary(x => x.Name, x => x);
-        }
+#if NETSTANDARD15
+			Properties = typeof(ClickHouseConnectionSettings).GetTypeInfo().GetProperties().ToDictionary(x => x.Name, x => x);
+#else
+			Properties = typeof(ClickHouseConnectionSettings).GetProperties().ToDictionary(x => x.Name, x => x);
+#endif
+		}
         private void SetValue(string name, string value)
         {
             Properties[name].SetMethod.Invoke(this, new[] {Convert.ChangeType(value, Properties[name].PropertyType)});

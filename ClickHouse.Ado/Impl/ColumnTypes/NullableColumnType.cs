@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Data;
-using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -60,8 +59,12 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override long IntValue(int currentRow)
         {
             if(Nulls[currentRow])
-                throw new SqlNullValueException();
-            return InnerType.IntValue(currentRow);
+#if NETSTANDARD15
+				throw new ArgumentNullException();
+#else
+				throw new System.Data.SqlTypes.SqlNullValueException();
+#endif
+			return InnerType.IntValue(currentRow);
         }
 
         public override void ValuesFromConst(IEnumerable objects)
