@@ -13,7 +13,11 @@ namespace ClickHouse.Ado
 {
     public class ClickHouseCommand : IDbCommand
     {
-        private readonly ClickHouseConnection _clickHouseConnection;
+        private ClickHouseConnection _clickHouseConnection;
+
+		public ClickHouseCommand() 
+		{
+		}
 
         public ClickHouseCommand(ClickHouseConnection clickHouseConnection)
         {
@@ -150,7 +154,10 @@ namespace ClickHouse.Ado
             }
         }
 
-        IDbConnection IDbCommand.Connection { get; set; }
+        IDbConnection IDbCommand.Connection {
+			get { return _clickHouseConnection; }
+			set { _clickHouseConnection = (ClickHouseConnection)value; }
+		}
         public ClickHouseConnection Connection => _clickHouseConnection;
         public IDbTransaction Transaction { get; set; }
         public string CommandText { get; set; }
