@@ -49,20 +49,28 @@ namespace ClickHouse.Ado
             }*/
             if (_stream != null)
             {
-                _stream.Close();
-                _stream.Dispose();
+#if !NETSTANDARD15
+				_stream.Close();
+#endif
+				_stream.Dispose();
                 _stream = null;
             }
             if (_netStream != null)
             {
-                _netStream.Close();
-                _netStream.Dispose();
+#if !NETSTANDARD15
+				_netStream.Close();
+#endif
+				_netStream.Dispose();
                 _netStream = null;
             }
             if (_tcpClient != null)
             {
-                _tcpClient.Close();
-                _tcpClient = null;
+#if !NETSTANDARD15
+				_tcpClient.Close();
+#else
+				_tcpClient.Dispose();
+#endif
+				_tcpClient = null;
             }
             if (Formatter != null)
             {
@@ -81,8 +89,12 @@ namespace ClickHouse.Ado
             //_tcpClient.NoDelay = true;
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
-            _tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
-            _netStream = new NetworkStream(_tcpClient.Client);
+#if NETSTANDARD15
+			_tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).RunSynchronously();
+#else
+			_tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
+#endif
+			_netStream = new NetworkStream(_tcpClient.Client);
             _stream =new UnclosableStream(_netStream);
             /*_reader=new BinaryReader(new UnclosableStream(_stream));
             _writer=new BinaryWriter(new UnclosableStream(_stream));*/
