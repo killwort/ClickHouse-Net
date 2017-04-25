@@ -11,6 +11,10 @@ namespace ClickHouse.Ado
     {
         public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
 
+        public ClickHouseConnection()
+        {
+        }
+
         public ClickHouseConnection(ClickHouseConnectionSettings settings)
         {
             ConnectionSettings = settings;
@@ -90,7 +94,7 @@ namespace ClickHouse.Ado
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
 #if NETSTANDARD15
-			_tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).RunSynchronously();
+			_tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).ConfigureAwait(false).GetAwaiter().GetResult();
 #else
 			_tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
 #endif
