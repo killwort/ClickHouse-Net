@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+#if !NETCOREAPP11
 using System.Data;
+#endif
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -59,7 +61,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override long IntValue(int currentRow)
         {
             if(Nulls[currentRow])
-#if NETSTANDARD15
+#if NETSTANDARD15 || NETCOREAPP11
 				throw new ArgumentNullException();
 #else
 				throw new System.Data.SqlTypes.SqlNullValueException();

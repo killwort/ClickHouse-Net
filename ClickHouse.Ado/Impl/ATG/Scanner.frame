@@ -28,6 +28,7 @@ Coco/R itself) does not fall under the GNU General Public License.
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 -->namespace
 
@@ -95,7 +96,7 @@ internal class Buffer {
 	
 	protected void Close() {
 		if (!isUserStream && stream != null) {
-#if NETSTANDARD15
+#if NETSTANDARD15 || NETCOREAPP11
 			stream.Dispose();		
 #else
 			stream.Close();
@@ -244,7 +245,7 @@ internal class Scanner {
 	int col;          // column number of current character
 	int line;         // line number of current character
 	int oldEols;      // EOLs that appeared in a comment;
-	static readonly Hashtable start; // maps first token character to start state
+	static readonly Dictionary<int,int> start; // maps first token character to start state
 
 	Token tokens;     // list of tokens already peeked (first token is a dummy)
 	Token pt;         // current peek token
@@ -253,7 +254,7 @@ internal class Scanner {
 	int tlen;         // length of current token
 	
 	static Scanner() {
-		start = new Hashtable(128);
+		start = new Dictionary<int,int>(128);
 -->initialization
 	}
 	

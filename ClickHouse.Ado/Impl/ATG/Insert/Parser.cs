@@ -7,7 +7,7 @@ namespace ClickHouse.Ado.Impl.ATG.Insert {
 
 
 
-public class Parser {
+internal class Parser {
 	public const int _EOF = 0;
 	public const int _ident = 1;
 	public const int _stringValue = 2;
@@ -181,7 +181,7 @@ internal string oneParam,tableName;
 } // end Parser
 
 
-public class Errors {
+internal class Errors {
 	public int count = 0;                                    // number of errors detected
 	public System.IO.TextWriter errorStream = Console.Out;   // error messages go to this stream
 	public string errMsgFormat = "-- line {0} col {1}: {2}"; // 0=line, 1=column, 2=text
@@ -233,7 +233,7 @@ public class Errors {
 } // Errors
 
 
-public class FatalError: Exception {
+internal class FatalError: Exception {
 	public FatalError(string m): base(m) {}
 }
 }

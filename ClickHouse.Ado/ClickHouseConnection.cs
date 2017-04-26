@@ -1,5 +1,7 @@
 ﻿using System;
+#if !NETCOREAPP11
 using System.Data;
+#endif
 using System.IO;
 using System.Net.Sockets;
 using ClickHouse.Ado.Impl;
@@ -7,7 +9,10 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado
 {
-    public class ClickHouseConnection : IDbConnection
+    public class ClickHouseConnection
+#if !NETCOREAPP11
+        : IDbConnection
+#endif
     {
         public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
 
@@ -53,7 +58,7 @@ namespace ClickHouse.Ado
             }*/
             if (_stream != null)
             {
-#if !NETSTANDARD15
+#if !NETSTANDARD15 && !NETCOREAPP11
 				_stream.Close();
 #endif
 				_stream.Dispose();
@@ -61,7 +66,7 @@ namespace ClickHouse.Ado
             }
             if (_netStream != null)
             {
-#if !NETSTANDARD15
+#if !NETSTANDARD15 &&!NETCOREAPP11
 				_netStream.Close();
 #endif
 				_netStream.Dispose();
@@ -69,7 +74,7 @@ namespace ClickHouse.Ado
             }
             if (_tcpClient != null)
             {
-#if !NETSTANDARD15
+#if !NETSTANDARD15 && !NETCOREAPP11
 				_tcpClient.Close();
 #else
 				_tcpClient.Dispose();
@@ -93,12 +98,14 @@ namespace ClickHouse.Ado
             //_tcpClient.NoDelay = true;
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
-#if NETSTANDARD15
-			_tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).ConfigureAwait(false).GetAwaiter().GetResult();
+#if NETCOREAPP11
+            _tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).Wait();
+#elif NETSTANDARD15
+            _tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).ConfigureAwait(false).GetAwaiter().GetResult();
 #else
 			_tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
 #endif
-			_netStream = new NetworkStream(_tcpClient.Client);
+            _netStream = new NetworkStream(_tcpClient.Client);
             _stream =new UnclosableStream(_netStream);
             /*_reader=new BinaryReader(new UnclosableStream(_stream));
             _writer=new BinaryWriter(new UnclosableStream(_stream));*/
@@ -118,7 +125,7 @@ namespace ClickHouse.Ado
 
         public int ConnectionTimeout { get; set; }
         public string Database { get; private set; }
-
+#if !NETCOREAPP11
         public ConnectionState State => Formatter != null ? ConnectionState.Open : ConnectionState.Closed;
 
         public IDbTransaction BeginTransaction()
@@ -130,17 +137,17 @@ namespace ClickHouse.Ado
         {
             throw new NotSupportedException();
         }
-
+        IDbCommand IDbConnection.CreateCommand()
+        {
+            return new ClickHouseCommand(this);
+        }
+#endif
         public void ChangeDatabase(string databaseName)
         {
             CreateCommand("USE " + ProtocolFormatter.EscapeName(databaseName)).ExecuteNonQuery();
             Database=databaseName;
         }
 
-        IDbCommand IDbConnection.CreateCommand()
-        {
-            return new ClickHouseCommand(this);
-        }
         public ClickHouseCommand CreateCommand()
         {
             return new ClickHouseCommand(this);

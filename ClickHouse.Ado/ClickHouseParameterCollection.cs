@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+#if !NETCOREAPP11
 using System.Data;
+#endif
 using System.Linq;
 
 namespace ClickHouse.Ado
 {
-    public class ClickHouseParameterCollection : IEnumerable<ClickHouseParameter>, IDataParameterCollection
+    public class ClickHouseParameterCollection : IEnumerable<ClickHouseParameter>
+#if !NETCOREAPP11
+        , IDataParameterCollection
+#endif
     {
         private List<ClickHouseParameter> _parameters = new List<ClickHouseParameter>();
 
@@ -29,20 +34,52 @@ namespace ClickHouse.Ado
         public object SyncRoot { get; } = new object();
 
         public bool IsSynchronized => false;
+#if !NETCOREAPP11
+
         int IList.Add(object value)
         {
-            _parameters.Add((ClickHouseParameter)value);
+            _parameters.Add((ClickHouseParameter) value);
             return _parameters.Count - 1;
-        }
-        public void Add(ClickHouseParameter value)
-        {
-            _parameters.Add(value);
         }
 
         bool IList.Contains(object value)
         {
             return _parameters.Contains(value);
         }
+
+        int IList.IndexOf(object value)
+        {
+            return _parameters.IndexOf((ClickHouseParameter) value);
+        }
+
+        void IList.Insert(int index, object value)
+        {
+            _parameters.Insert(index, (ClickHouseParameter) value);
+        }
+
+        void IList.Remove(object value)
+        {
+            _parameters.Remove((ClickHouseParameter) value);
+        }
+
+        object IList.this[int index]
+        {
+            get { return _parameters[index]; }
+            set { _parameters[index] = (ClickHouseParameter) value; }
+        }
+
+        object IDataParameterCollection.this[string parameterName]
+        {
+            get { return _parameters.First(x => x.ParameterName == parameterName); }
+            set { _parameters[_parameters.FindIndex(x => x.ParameterName == parameterName)] = (ClickHouseParameter) value; }
+        }
+#endif
+
+        public void Add(ClickHouseParameter value)
+        {
+            _parameters.Add(value);
+        }
+
         public bool Contains(ClickHouseParameter value)
         {
             return _parameters.Contains(value);
@@ -53,28 +90,16 @@ namespace ClickHouse.Ado
             _parameters.Clear();
         }
 
-        int IList.IndexOf(object value)
-        {
-            return _parameters.IndexOf((ClickHouseParameter)value);
-        }
         public int IndexOf(ClickHouseParameter value)
         {
             return _parameters.IndexOf(value);
         }
 
-        void IList.Insert(int index, object value)
-        {
-            _parameters.Insert(index, (ClickHouseParameter)value);
-        }
         public void Insert(int index, ClickHouseParameter value)
         {
             _parameters.Insert(index, value);
         }
 
-        void IList.Remove(object value)
-        {
-            _parameters.Remove((ClickHouseParameter)value);
-        }
         public void Remove(ClickHouseParameter value)
         {
             _parameters.Remove(value);
@@ -85,22 +110,12 @@ namespace ClickHouse.Ado
             _parameters.RemoveAt(index);
         }
 
-        object IList.this[int index]
-        {
-            get { return _parameters[index]; }
-            set { _parameters[index] = (ClickHouseParameter)value; }
-        }
         public ClickHouseParameter this[int index]
         {
             get { return _parameters[index]; }
             set { _parameters[index] = value; }
         }
 
-        object IDataParameterCollection.this[string parameterName]
-        {
-            get { return _parameters.First(x => x.ParameterName == parameterName); }
-            set { _parameters[_parameters.FindIndex(x => x.ParameterName == parameterName)] = (ClickHouseParameter) value; }
-        }
 
         public ClickHouseParameter this[string parameterName]
         {
@@ -110,6 +125,7 @@ namespace ClickHouse.Ado
 
         public bool IsReadOnly => false;
         public bool IsFixedSize => false;
+
         public bool Contains(string parameterName)
         {
             return _parameters.Exists(x => x.ParameterName == parameterName);
@@ -124,7 +140,5 @@ namespace ClickHouse.Ado
         {
             _parameters.RemoveAll(x => x.ParameterName == parameterName);
         }
-
-        
     }
 }

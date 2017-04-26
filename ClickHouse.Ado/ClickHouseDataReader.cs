@@ -1,23 +1,38 @@
 ﻿using System;
+#if !NETCOREAPP11
 using System.Data;
+#endif
 using ClickHouse.Ado.Impl;
 using ClickHouse.Ado.Impl.ColumnTypes;
 using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado
 {
-    public class ClickHouseDataReader : IDataReader
+    public class ClickHouseDataReader :
+#if NETCOREAPP11
+        IDisposable
+#else
+        IDataReader
+#endif
     {
+#if !NETCOREAPP11
         private readonly CommandBehavior _behavior;
+#endif
         private ClickHouseConnection _clickHouseConnection;
 
         private Block _currentBlock;
         private int _currentRow;
 
-        internal ClickHouseDataReader(ClickHouseConnection clickHouseConnection, CommandBehavior behavior)
+        internal ClickHouseDataReader(ClickHouseConnection clickHouseConnection
+#if !NETCOREAPP11
+            , CommandBehavior behavior
+#endif
+            )
         {
             _clickHouseConnection = clickHouseConnection;
+#if !NETCOREAPP11
             _behavior = behavior;
+#endif
             NextResult();
         }
 
@@ -140,11 +155,15 @@ namespace ClickHouse.Ado
         {
             return Convert.ToDateTime(GetValue(i));
         }
-
+#if !NETCOREAPP11
         public IDataReader GetData(int i)
         {
             throw new NotSupportedException();
         }
+        object IDataRecord.this[int i] => GetValue(i);
+
+        object IDataRecord.this[string name] => GetValue(GetOrdinal(name));
+#endif
 
         public bool IsDBNull(int i)
         {
@@ -159,23 +178,23 @@ namespace ClickHouse.Ado
 
         public int FieldCount => _currentBlock.Columns.Count;
 
-        object IDataRecord.this[int i] => GetValue(i);
-
-        object IDataRecord.this[string name] => GetValue(GetOrdinal(name));
 
         public void Close()
         {
             if (_currentBlock != null)
                 _clickHouseConnection.Formatter.ReadResponse();
+#if !NETCOREAPP11
             if((_behavior&CommandBehavior.CloseConnection)!=0)
                 _clickHouseConnection.Close();
+#endif
             _clickHouseConnection = null;
         }
-
+#if !NETCOREAPP11
         public DataTable GetSchemaTable()
         {
             throw new NotImplementedException();
         }
+#endif
 
         public bool NextResult()
         {

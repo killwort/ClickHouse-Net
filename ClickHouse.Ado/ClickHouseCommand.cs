@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+#if !NETCOREAPP11
 using System.Data;
+#endif
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,7 +13,10 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado
 {
-    public class ClickHouseCommand : IDbCommand
+    public class ClickHouseCommand 
+#if !NETCOREAPP11
+        :IDbCommand
+#endif
     {
         private ClickHouseConnection _clickHouseConnection;
 
@@ -46,11 +51,24 @@ namespace ClickHouse.Ado
         {
             return new ClickHouseParameter();
         }
+#if !NETCOREAPP11
+
         IDbDataParameter IDbCommand.CreateParameter()
         {
             return CreateParameter();
         }
-        
+        IDbConnection IDbCommand.Connection
+        {
+            get { return _clickHouseConnection; }
+            set { _clickHouseConnection = (ClickHouseConnection)value; }
+        }
+        public IDbTransaction Transaction { get; set; }
+        public CommandType CommandType { get; set; }
+        IDataParameterCollection IDbCommand.Parameters => Parameters;
+        public UpdateRowSource UpdatedRowSource { get; set; }
+
+#endif
+
         private void Execute(bool readResponse)
         {
             var insertParser = new Impl.ATG.Insert.Parser(new Impl.ATG.Insert.Scanner(new MemoryStream(Encoding.UTF8.GetBytes(CommandText))));
@@ -127,6 +145,13 @@ namespace ClickHouse.Ado
             Execute(true);
             return 0;
         }
+#if NETCOREAPP11
+        public ClickHouseDataReader ExecuteReader()
+        {
+            Execute(false);
+            return new ClickHouseDataReader(_clickHouseConnection);
+        }
+#else
         public IDataReader ExecuteReader()
         {
             return ExecuteReader(CommandBehavior.Default);
@@ -140,6 +165,7 @@ namespace ClickHouse.Ado
 
             return new ClickHouseDataReader(_clickHouseConnection, behavior);
         }
+#endif
 
         public object ExecuteScalar()
         {
@@ -154,17 +180,9 @@ namespace ClickHouse.Ado
             }
         }
 
-        IDbConnection IDbCommand.Connection {
-			get { return _clickHouseConnection; }
-			set { _clickHouseConnection = (ClickHouseConnection)value; }
-		}
         public ClickHouseConnection Connection => _clickHouseConnection;
-        public IDbTransaction Transaction { get; set; }
         public string CommandText { get; set; }
         public int CommandTimeout { get; set; }
-        public CommandType CommandType { get; set; }
-        IDataParameterCollection IDbCommand.Parameters => Parameters;
         public ClickHouseParameterCollection Parameters { get; }=new ClickHouseParameterCollection();
-        public UpdateRowSource UpdatedRowSource { get; set; }
     }
 }

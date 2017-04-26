@@ -9,7 +9,7 @@ namespace ClickHouse.Ado.Impl
     {
         private readonly Stream _baseStream;
 
-#if !NETSTANDARD15
+#if !NETSTANDARD15 && !NETCOREAPP11
 		public override void Close()
         {
         }

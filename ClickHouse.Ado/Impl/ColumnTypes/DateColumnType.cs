@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+#if !NETCOREAPP11
 using System.Data;
+#endif
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -56,7 +58,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         }
         public override void ValueFromParam(ClickHouseParameter parameter)
         {
-            if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset)
+            if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime
+#if !NETCOREAPP11
+                || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
+#endif
+                )
             {
                 Data = new[] {(DateTime) Convert.ChangeType(parameter.Value, typeof(DateTime))};
             }else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to Date.");

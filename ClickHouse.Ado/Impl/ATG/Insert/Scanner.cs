@@ -2,10 +2,11 @@
 using System;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace ClickHouse.Ado.Impl.ATG.Insert {
 
-public class Token {
+internal class Token {
 	public int kind;    // token kind
 	public int pos;     // token position in bytes in the source text (starting at 0)
 	public int charPos;  // token position in characters in the source text (starting at 0)
@@ -18,7 +19,7 @@ public class Token {
 //-----------------------------------------------------------------------------------
 // Buffer
 //-----------------------------------------------------------------------------------
-public class Buffer {
+internal class Buffer {
 	// This Buffer supports the following cases:
 	// 1) seekable stream (file)
 	//    a) whole stream in buffer
@@ -69,12 +70,12 @@ public class Buffer {
 	
 	protected void Close() {
 		if (!isUserStream && stream != null) {
-#if NETSTANDARD15
-				stream.Dispose();
+#if NETSTANDARD15 || NETCOREAPP11
+			stream.Dispose();		
 #else
-				stream.Close();
+			stream.Close();
 #endif
-				stream = null;
+			stream = null;
 		}
 	}
 	
@@ -166,7 +167,7 @@ public class Buffer {
 //-----------------------------------------------------------------------------------
 // UTF8Buffer
 //-----------------------------------------------------------------------------------
-public class UTF8Buffer: Buffer {
+internal class UTF8Buffer: Buffer {
 	public UTF8Buffer(Buffer b): base(b) {}
 
 	public override int Read() {
@@ -204,7 +205,7 @@ public class UTF8Buffer: Buffer {
 //-----------------------------------------------------------------------------------
 // Scanner
 //-----------------------------------------------------------------------------------
-public class Scanner {
+internal class Scanner {
 	const char EOL = '\n';
 	const int eofSym = 0; /* pdt */
 	const int maxT = 13;
@@ -220,7 +221,7 @@ public class Scanner {
 	int col;          // column number of current character
 	int line;         // line number of current character
 	int oldEols;      // EOLs that appeared in a comment;
-	static readonly Hashtable start; // maps first token character to start state
+	static readonly Dictionary<int,int> start; // maps first token character to start state
 
 	Token tokens;     // list of tokens already peeked (first token is a dummy)
 	Token pt;         // current peek token
@@ -229,7 +230,7 @@ public class Scanner {
 	int tlen;         // length of current token
 	
 	static Scanner() {
-		start = new Hashtable(128);
+		start = new Dictionary<int,int>(128);
 		for (int i = 95; i <= 95; ++i) start[i] = 1;
 		for (int i = 97; i <= 122; ++i) start[i] = 1;
 		for (int i = 48; i <= 57; ++i) start[i] = 5;

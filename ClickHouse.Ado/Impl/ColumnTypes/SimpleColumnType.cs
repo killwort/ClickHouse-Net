@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+#if !NETCOREAPP11
 using System.Data;
+#endif
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -64,9 +66,15 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override void ValueFromParam(ClickHouseParameter parameter)
         {
-            if (parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64
+            if (
+#if NETCOREAPP11
+                parameter.DbType==DbType.Integral || parameter.DbType==DbType.Float
+#else
+                parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64
                 || parameter.DbType == DbType.UInt16 || parameter.DbType == DbType.UInt32 || parameter.DbType == DbType.UInt64
-                || parameter.DbType == DbType.Single || parameter.DbType == DbType.Decimal || parameter.DbType == DbType.Decimal)
+                || parameter.DbType == DbType.Single || parameter.DbType == DbType.Decimal || parameter.DbType == DbType.Decimal
+#endif
+                )
             {
                 Data = new[] {(T) Convert.ChangeType(parameter.Value, typeof(T))};
             }

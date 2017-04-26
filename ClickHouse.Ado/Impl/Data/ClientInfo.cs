@@ -62,8 +62,8 @@ namespace ClickHouse.Ado.Impl.Data
         public string QuotaKey { get; set; }
 
         public void PopulateEnvironment()
-        {
-#if !NETSTANDARD15
+        {   
+#if !NETSTANDARD15 && !NETCOREAPP11
 			OsUser = Environment.UserName;
 #endif
 			ClientHostname = Environment.MachineName;
