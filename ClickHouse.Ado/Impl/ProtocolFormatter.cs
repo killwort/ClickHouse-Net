@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using ClickHouse.Ado.Impl.Compress;
 using ClickHouse.Ado.Impl.Data;
 using ClickHouse.Ado.Impl.Settings;
@@ -128,9 +129,18 @@ namespace ClickHouse.Ado.Impl
             var bytes = new byte[i];
             int read = 0;
             int cur = 0;
+            var networkStream = _ioStream as System.Net.Sockets.NetworkStream;
             do
             {
-                read += _ioStream.Read(bytes, read, i - read);
+                cur = _ioStream.Read(bytes, read, i - read);
+                read += cur;
+                if (cur == 0)
+                {
+                    // check for DataAvailable forces an exception if socket is closed
+                    if (networkStream != null && networkStream.DataAvailable)
+                        continue;
+                    Thread.Sleep(1);
+                }
             }
             while (read < i);
             return bytes;
