@@ -21,6 +21,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         }
 
         public override int Rows => InnerType.Rows;
+        internal override Type CLRType => InnerType.CLRType.MakeArrayType();
+
         public override void ValueFromConst(string value, Parser.ConstType typeHint)
         {
             throw new NotImplementedException();

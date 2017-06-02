@@ -57,7 +57,7 @@ namespace ClickHouse.Ado
         {
             if (_currentBlock == null)
                 throw new InvalidOperationException("Trying to read beyond end of stream.");
-            return _currentBlock.Columns[i].Type.GetType();
+            return _currentBlock.Columns[i].Type.CLRType;
         }
 
         public object GetValue(int i)

@@ -23,6 +23,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         }
 
         public override int Rows => Columns.First().Rows;
+        internal override Type CLRType => typeof(Tuple<>).MakeGenericType(Columns.Select(x => x.CLRType).ToArray());
 
 
         public override string AsClickHouseType()

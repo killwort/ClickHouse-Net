@@ -33,6 +33,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             {"Null", typeof(NullColumnType)}
         };
 
+        internal abstract Type CLRType { get; }
+
         private static readonly Regex FixedStringRegex = new Regex(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex NestedRegex = new Regex(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
 
