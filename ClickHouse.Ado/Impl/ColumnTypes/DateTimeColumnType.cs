@@ -46,10 +46,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override int Rows => Data?.Length ?? 0;
 
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
-            if (typeHint == Parser.ConstType.String)
-                Data = new[] { DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(value), "yyyy-MM-dd HH:mm:ss", null, DateTimeStyles.AssumeUniversal) };
+            if (val.TypeHint == Parser.ConstType.String)
+                Data = new[] { DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(val.StringValue), "yyyy-MM-dd HH:mm:ss", null, DateTimeStyles.AssumeUniversal) };
             else
                 throw new InvalidCastException("Cannot convert numeric value to DateTime.");
         }

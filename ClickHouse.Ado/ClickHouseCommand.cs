@@ -118,10 +118,10 @@ namespace ClickHouse.Ado
                     for (var i = 0; i < insertParser.valueList.Count(); i++)
                     {
                         var val = insertParser.valueList.ElementAt(i);
-                        if (val.Item2 == Parser.ConstType.Parameter)
-                            schema.Columns[i].Type.ValueFromParam(Parameters[val.Item1]);
+                        if (val.TypeHint == Parser.ConstType.Parameter)
+                            schema.Columns[i].Type.ValueFromParam(Parameters[val.StringValue]);
                         else
-                            schema.Columns[i].Type.ValueFromConst(val.Item1, val.Item2);
+                            schema.Columns[i].Type.ValueFromConst(val);
                     }
                 }
                 _clickHouseConnection.Formatter.SendBlocks(new[] { schema });

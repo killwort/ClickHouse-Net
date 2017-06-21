@@ -88,7 +88,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             throw new NotSupportedException($"Unknown column type {name}");
         }
 
-        public abstract void ValueFromConst(string value, Parser.ConstType typeHint);
+        //public abstract void ValueFromConst(string value, Parser.ConstType typeHint);
+        public abstract void ValueFromConst(Parser.ValueType val);
         public abstract string AsClickHouseType();
         public abstract void Write(ProtocolFormatter formatter, int rows);
 

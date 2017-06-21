@@ -40,7 +40,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             }
         }
 
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
             throw new NotSupportedException();
         }

@@ -50,10 +50,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             foreach (var d in Data)
                 formatter.WriteBytes(BitConverter.GetBytes((ushort) ((d - UnixTimeBase).TotalDays)));
         }
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
-            if (typeHint == Parser.ConstType.String)
-                Data = new[] {DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(value), "yyyy-MM-dd", null, DateTimeStyles.AssumeUniversal)};
+            if (val.TypeHint == Parser.ConstType.String)
+                Data = new[] {DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(val.StringValue), "yyyy-MM-dd", null, DateTimeStyles.AssumeUniversal)};
             else
                 throw new InvalidCastException("Cannot convert numeric value to Date.");
         }

@@ -3,6 +3,7 @@ namespace ClickHouse.Ado
 {
     public enum DbType
     {
+        Unknown,
         String,
         DateTime,
         Date,

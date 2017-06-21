@@ -57,12 +57,14 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             formatter.WriteBytes(bytes);
         }
 
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
-            if (typeHint == Parser.ConstType.String)
-                Data = new[] { (T)Convert.ChangeType(ProtocolFormatter.UnescapeStringValue(value), typeof(T)) };
+            if (val.TypeHint == Parser.ConstType.String)
+                Data = new[] { (T)Convert.ChangeType(ProtocolFormatter.UnescapeStringValue(val.StringValue), typeof(T)) };
+            else if (val.TypeHint == Parser.ConstType.Number)
+                Data = new[] {(T) Convert.ChangeType(val.StringValue, typeof(T))};
             else
-                Data = new[] { (T)Convert.ChangeType(value, typeof(T)) };
+                throw new NotSupportedException();
         }
 
         public override void ValueFromParam(ClickHouseParameter parameter)

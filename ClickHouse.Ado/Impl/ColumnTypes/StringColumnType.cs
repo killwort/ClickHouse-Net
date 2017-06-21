@@ -45,15 +45,15 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             }
         }
 
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
-            if (typeHint == Parser.ConstType.String)
+            if (val.TypeHint == Parser.ConstType.String)
             {
-                var uvalue = ProtocolFormatter.UnescapeStringValue(value);
+                var uvalue = ProtocolFormatter.UnescapeStringValue(val.StringValue);
                 Data = new[] { uvalue };
             }
             else
-                Data = new[] { value };
+                Data = new[] { val.StringValue };
         }
         public override void ValueFromParam(ClickHouseParameter parameter)
         {

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Linq;
 #if !NETCOREAPP11
 using System.Data;
 #endif
@@ -25,23 +27,37 @@ namespace ClickHouse.Ado
         public string ParameterName { get; set; }
         public object Value { get; set; }
 
-        public string AsSubstitute()
+        private string AsSubstitute(object val)
         {
             if (DbType == DbType.String
 #if !NETCOREAPP11
                 || DbType == DbType.AnsiString || DbType == DbType.StringFixedLength || DbType == DbType.AnsiStringFixedLength
 #endif
-                )
+                ||(DbType==0 && val is string)
+            )
                 return ProtocolFormatter.EscapeStringValue(Value.ToString());
             if (DbType == DbType.DateTime
 #if !NETCOREAPP11
                 || DbType == DbType.DateTime2 || DbType == DbType.DateTime2
 #endif
-                )
+                || (DbType==0 && val is DateTime)
+            )
                 return $"'{(DateTime)Value:yyyy-MM-dd HH:mm:ss}'";
             if (DbType == DbType.Date)
                 return $"'{(DateTime)Value:yyyy-MM-dd}'";
+            if ((DbType==0
+#if !NETCOREAPP11
+                || DbType==DbType.Object
+#endif
+                ) && !(Value is string) && Value is IEnumerable )
+            {
+                return "[" + string.Join(",", ((IEnumerable) Value).Cast<object>().Select(x => AsSubstitute(x))) + "]";
+            }
             return Value.ToString();
+        }
+        public string AsSubstitute()
+        {
+            return AsSubstitute(Value);
         }
     }
 }

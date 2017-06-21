@@ -43,10 +43,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             InnerType.Read(formatter, rows);
         }
 
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
-            Nulls = new[] { value == null };
-            InnerType.ValueFromConst(value, typeHint);
+            Nulls = new[] { val.StringValue == null && val.ArrayValue==null };
+            InnerType.ValueFromConst(val);
         }
         public override void ValueFromParam(ClickHouseParameter parameter)
         {

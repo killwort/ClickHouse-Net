@@ -17,7 +17,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override int Rows => _rows;
         internal override Type CLRType => typeof(object);
 
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
             
         }

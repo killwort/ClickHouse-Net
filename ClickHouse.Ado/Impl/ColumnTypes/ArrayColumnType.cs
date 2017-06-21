@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
@@ -8,24 +10,32 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
     {
         public ArrayColumnType(ColumnType innerType)
         {
+            Offsets = new SimpleColumnType<ulong>();
             InnerType = innerType;
         }
 
         public ColumnType InnerType { get; private set; }
+        public SimpleColumnType<ulong> Offsets { get; private set; }
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
-            throw new NotImplementedException();
-            var offsets=new SimpleColumnType<ulong>();
-            offsets.Read(formatter, rows);
-            InnerType.Read(formatter, rows);
+            Offsets.Read(formatter, rows);
+            var totalRows = Offsets.Data.Last();
+            InnerType.Read(formatter,(int) totalRows);
         }
 
         public override int Rows => InnerType.Rows;
         internal override Type CLRType => InnerType.CLRType.MakeArrayType();
 
-        public override void ValueFromConst(string value, Parser.ConstType typeHint)
+        public override void ValueFromConst(Parser.ValueType val)
         {
-            throw new NotImplementedException();
+            if (val.TypeHint == Parser.ConstType.Array)
+            {
+                InnerType.ValuesFromConst(val.ArrayValue.Select(x => Convert.ChangeType(x.StringValue, InnerType.CLRType)));
+                Offsets.ValueFromConst(new Parser.ValueType {TypeHint = Parser.ConstType.Number, StringValue = InnerType.Rows.ToString()});
+            }
+            else
+                throw new NotSupportedException();
+            
         }
 
         public override string AsClickHouseType()
@@ -35,17 +45,30 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override void Write(ProtocolFormatter formatter, int rows)
         {
-            throw new System.NotImplementedException();
+            Offsets.Write(formatter,rows);
+            var totalRows=rows==0?0:Offsets.Data.Last();
+            InnerType.Write(formatter, (int)totalRows);
         }
 
         public override void ValueFromParam(ClickHouseParameter parameter)
         {
-            throw new NotImplementedException();
+            if (parameter.DbType == 0
+#if !NETCOREAPP11
+                || parameter.DbType == System.Data.DbType.Object
+#endif
+            )
+                ValuesFromConst(new[] {parameter.Value as IEnumerable});
+            else throw new NotSupportedException();
         }
 
         public override object Value(int currentRow)
         {
-            throw new NotImplementedException();
+            var start = currentRow == 0 ? 0 : Offsets.Data[currentRow - 1];
+            var end = Offsets.Data[currentRow];
+            var rv = new object[end - start];
+            for (var i = start; i < end; i++)
+                rv[i-start]=InnerType.Value((int)i);
+            return rv;
         }
 
         public override long IntValue(int currentRow)
@@ -55,7 +78,17 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override void ValuesFromConst(IEnumerable objects)
         {
-            throw new NotImplementedException();
+            var offsets = new List<ulong>();
+            var itemsPlain = new List<object>();
+            ulong currentOffset = 0;
+            foreach (var item in objects.Cast<IEnumerable<object>>())
+            {
+                currentOffset += (ulong)item.Count();
+                offsets.Add(currentOffset);
+                itemsPlain.AddRange(item);
+            }
+            Offsets.ValuesFromConst(offsets);
+            InnerType.ValuesFromConst(itemsPlain);
         }
     }
 }

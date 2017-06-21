@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 
 using System;
@@ -15,7 +16,7 @@ internal class Parser {
 	public const int _insert = 4;
 	public const int _values = 5;
 	public const int _into = 6;
-	public const int maxT = 13;
+	public const int maxT = 15;
 
 	const bool T = true;
 	const bool x = false;
@@ -28,9 +29,14 @@ internal class Parser {
 	public Token la;   // lookahead token
 	int errDist = minErrDist;
 
-public enum ConstType{String,Number,Parameter};
+public enum ConstType{String,Number,Parameter,Array};
+public class ValueType{
+	public string StringValue;
+	public ValueType[] ArrayValue;
+	public ConstType TypeHint;
+}
 internal IEnumerable<string> fieldList;
-internal IEnumerable<Tuple<string,ConstType> > valueList;
+internal IEnumerable<ValueType> valueList;
 internal string oneParam,tableName;
 
 
@@ -112,27 +118,32 @@ internal string oneParam,tableName;
 			Get();
 		} else if (la.kind == 9) {
 			Get();
-		} else SynErr(14);
+		} else SynErr(16);
 		Expect(1);
 		name=t.val; 
 	}
 
-	void Value(out Tuple<string,ConstType> val ) {
-		val = null; string paramName=null; 
+	void Value(out ValueType val ) {
+		val = null; string paramName=null; IEnumerable<ValueType > inner; 
 		if (la.kind == 2) {
 			Get();
-			val=Tuple.Create(t.val,ConstType.String); 
+			val=new ValueType{StringValue=t.val,TypeHint=ConstType.String}; 
 		} else if (la.kind == 8 || la.kind == 9) {
 			Parameter(out paramName);
-			val=Tuple.Create(paramName,ConstType.Parameter); 
+			val=new ValueType{StringValue=paramName,TypeHint=ConstType.Parameter}; 
 		} else if (la.kind == 3) {
 			Get();
-			val=Tuple.Create(t.val,ConstType.Number); 
-		} else SynErr(15);
+			val=new ValueType{StringValue=t.val,TypeHint=ConstType.Number}; 
+		} else if (la.kind == 10) {
+			Get();
+			ValueList(out inner);
+			val=new ValueType{ArrayValue=inner.ToArray(), TypeHint=ConstType.Array}; 
+			Expect(11);
+		} else SynErr(17);
 	}
 
-	void ValueList(out IEnumerable<Tuple<string,ConstType> > elements ) {
-		var rv=new List<Tuple<string,ConstType> >(); elements=rv; Tuple<string,ConstType> elem; IEnumerable<Tuple<string,ConstType> > inner; 
+	void ValueList(out IEnumerable<ValueType > elements ) {
+		var rv=new List<ValueType >(); elements=rv; ValueType elem; IEnumerable<ValueType > inner; 
 		Value(out elem);
 		rv.Add(elem); 
 		if (la.kind == 7) {
@@ -147,18 +158,18 @@ internal string oneParam,tableName;
 		Expect(4);
 		Expect(6);
 		Field(out tableName);
-		Expect(10);
+		Expect(12);
 		FieldList(out fieldList);
-		Expect(11);
+		Expect(13);
 		Expect(5);
 		if (la.kind == 8 || la.kind == 9) {
 			Parameter(out oneParam);
-		} else if (la.kind == 10) {
+		} else if (la.kind == 12) {
 			Get();
 			ValueList(out valueList);
-			Expect(11);
-		} else SynErr(16);
-		while (la.kind == 12) {
+			Expect(13);
+		} else SynErr(18);
+		while (la.kind == 14) {
 			Get();
 		}
 	}
@@ -175,7 +186,7 @@ internal string oneParam,tableName;
 	}
 	
 	static readonly bool[,] set = {
-		{T,x,x,x, x,x,x,x, x,x,x,x, x,x,x}
+		{T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x}
 
 	};
 } // end Parser
@@ -199,13 +210,15 @@ internal class Errors {
 			case 7: s = "\",\" expected"; break;
 			case 8: s = "\"@\" expected"; break;
 			case 9: s = "\":\" expected"; break;
-			case 10: s = "\"(\" expected"; break;
-			case 11: s = "\")\" expected"; break;
-			case 12: s = "\";\" expected"; break;
-			case 13: s = "??? expected"; break;
-			case 14: s = "invalid Parameter"; break;
-			case 15: s = "invalid Value"; break;
-			case 16: s = "invalid Insert"; break;
+			case 10: s = "\"[\" expected"; break;
+			case 11: s = "\"]\" expected"; break;
+			case 12: s = "\"(\" expected"; break;
+			case 13: s = "\")\" expected"; break;
+			case 14: s = "\";\" expected"; break;
+			case 15: s = "??? expected"; break;
+			case 16: s = "invalid Parameter"; break;
+			case 17: s = "invalid Value"; break;
+			case 18: s = "invalid Insert"; break;
 
 			default: s = "error " + n; break;
 		}

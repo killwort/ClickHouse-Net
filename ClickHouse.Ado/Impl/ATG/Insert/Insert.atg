@@ -1,9 +1,15 @@
 ﻿$namespace=ClickHouse.Ado.Impl.ATG.Insert
 using System.Collections.Generic;
+using System.Linq;
 COMPILER Insert
-public enum ConstType{String,Number,Parameter};
+public enum ConstType{String,Number,Parameter,Array};
+public class ValueType{
+	public string StringValue;
+	public ValueType[] ArrayValue;
+	public ConstType TypeHint;
+}
 internal IEnumerable<string> fieldList;
-internal IEnumerable<Tuple<string,ConstType> > valueList;
+internal IEnumerable<ValueType> valueList;
 internal string oneParam,tableName;
 IGNORECASE
 CHARACTERS
@@ -11,7 +17,7 @@ letter='A'..'Z'+'a'..'z'+'_'.
 digit='0'..'9'.
 nonEscaped=ANY-"'"-"\\".
 TOKENS
-ident=letter{letter|digit}.
+ident=[letter{letter|digit}"."]letter{letter|digit}.
 stringValue="'" {nonEscaped|"\\\\"|"\\'"} "'".
 numValue=["-"|"+"]((digit{digit}["."{digit}])|("."digit{digit})).
 insert="INSERT".
@@ -40,14 +46,17 @@ Parameter< out string name >
 	ident	(. name=t.val; .)
 .
 
-Value<. out Tuple<string,ConstType> val .>	(. val = null; string paramName=null; .)
+Value<. out ValueType val .>	(. val = null; string paramName=null; IEnumerable<ValueType > inner; .)
 =
-	stringValue	(. val=Tuple.Create(t.val,ConstType.String); .)
-	| Parameter<out paramName>	(. val=Tuple.Create(paramName,ConstType.Parameter); .)
-	| numValue	(. val=Tuple.Create(t.val,ConstType.Number); .)
+	stringValue	(. val=new ValueType{StringValue=t.val,TypeHint=ConstType.String}; .)
+	| Parameter<out paramName>	(. val=new ValueType{StringValue=paramName,TypeHint=ConstType.Parameter}; .)
+	| numValue	(. val=new ValueType{StringValue=t.val,TypeHint=ConstType.Number}; .)
+	|  "["
+	   ValueList<out inner> (. val=new ValueType{ArrayValue=inner.ToArray(), TypeHint=ConstType.Array}; .)
+	   "]"
 .
 
-ValueList<. out IEnumerable<Tuple<string,ConstType> > elements .>	(. var rv=new List<Tuple<string,ConstType> >(); elements=rv; Tuple<string,ConstType> elem; IEnumerable<Tuple<string,ConstType> > inner; .)
+ValueList<. out IEnumerable<ValueType > elements .>	(. var rv=new List<ValueType >(); elements=rv; ValueType elem; IEnumerable<ValueType > inner; .)
 =
 	Value<out elem>	(. rv.Add(elem); .)
 	[

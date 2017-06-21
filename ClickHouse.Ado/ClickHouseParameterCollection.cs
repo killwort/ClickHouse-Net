@@ -42,6 +42,28 @@ namespace ClickHouse.Ado
             return _parameters.Count - 1;
         }
 
+        public ClickHouseParameter Add(string name, object value)
+        {
+            var p = new ClickHouseParameter
+            {
+                ParameterName = name,
+                Value = value
+            };
+            Add(p);
+            return p;
+        }
+        public ClickHouseParameter Add(string name,DbType type, object value)
+        {
+            var p = new ClickHouseParameter
+            {
+                ParameterName = name,
+                DbType = type,
+                Value = value
+            };
+            Add(p);
+            return p;
+        }
+
         bool IList.Contains(object value)
         {
             return _parameters.Contains(value);

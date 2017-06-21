@@ -36,5 +36,17 @@ namespace ClickHouse.Ado
             cmd.Parameters.Add(par);
             return cmd;
         }
+#if NETCOREAPP11
+        public static ClickHouseCommand AddParameter(this ClickHouseCommand cmd, string name, object value) 
+#else
+        public static T AddParameter<T>(this T cmd, string name, object value) where T : IDbCommand
+#endif
+        {
+            var par = cmd.CreateParameter();
+            par.ParameterName = name;
+            par.Value = value;
+            cmd.Parameters.Add(par);
+            return cmd;
+        }
     }
 }
