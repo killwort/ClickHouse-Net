@@ -10,7 +10,7 @@ rules however this is intentional.
 ClickHouse engine does not support parsing multiple queries per on `IDbCommand.Execute*` roundtrip. Please split your queries into separately executed commands.
 
 ### Always use NextResult
-Although you may think that `NextResult` would not be used due to aforementioned lack of multiple qery support that's completely wrong! You **must always use** `NextResult` 
+Although you may think that `NextResult` would not be used due to aforementioned lack of multiple query support that's completely wrong! You **must always use** `NextResult` 
 as ClickHouse protocol and engine *may and will* return multiple resultsets per query and sometime result schemas may differ (definetly in regard to field 
 ordering if query doesn't explicitly specify it).
 
@@ -74,8 +74,8 @@ If you need some functionality or found a bug but unable to implement/fix it, pl
 ### Всегда используй NextResult
 В связи с вышесказаным может показаться что `NextResult` не нужен, но это совершенно не так. Использование `NextResult` **обязательно**, поскольку протокол и движок ClickHouse *может и будет* возвращать несколько наборов данных на один запрос, и, хуже того, схемы этих наборов могут различаться (по крайней мере может быть перепутан порядок полей, если запрос не имеет явного указания порядка).
 
-### Секретная функиця групповой вставки
-В документации ClickHouse указано, что вставлять данные лучше пачками 100+ записей. Для этого предусмотрен специальнй синтаксис:
+### Секретная функция групповой вставки
+В документации ClickHouse указано, что вставлять данные лучше пачками 100+ записей. Для этого предусмотрен специальный синтаксис:
 
 ```SQL
 INSERT INTO some_table (col1, col2, col3) VALUES @bulk
