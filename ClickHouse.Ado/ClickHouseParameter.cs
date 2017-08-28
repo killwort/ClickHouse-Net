@@ -35,25 +35,33 @@ namespace ClickHouse.Ado
 #endif
                 ||(DbType==0 && val is string)
             )
-                return ProtocolFormatter.EscapeStringValue(Value.ToString());
+                return ProtocolFormatter.EscapeStringValue(val.ToString());
             if (DbType == DbType.DateTime
 #if !NETCOREAPP11
                 || DbType == DbType.DateTime2 || DbType == DbType.DateTime2
 #endif
                 || (DbType==0 && val is DateTime)
             )
-                return $"'{(DateTime)Value:yyyy-MM-dd HH:mm:ss}'";
+                return $"'{(DateTime)val:yyyy-MM-dd HH:mm:ss}'";
             if (DbType == DbType.Date)
-                return $"'{(DateTime)Value:yyyy-MM-dd}'";
+                return $"'{(DateTime)val:yyyy-MM-dd}'";
+            if ((DbType != 0
+#if !NETCOREAPP11
+                 && DbType != DbType.Object
+#endif
+                ) && !(val is string) && val is IEnumerable)
+            {
+                return string.Join(",", ((IEnumerable)val).Cast<object>().Select(AsSubstitute));
+            }
             if ((DbType==0
 #if !NETCOREAPP11
                 || DbType==DbType.Object
 #endif
-                ) && !(Value is string) && Value is IEnumerable )
+                ) && !(val is string) && val is IEnumerable )
             {
-                return "[" + string.Join(",", ((IEnumerable) Value).Cast<object>().Select(x => AsSubstitute(x))) + "]";
+                return "[" + string.Join(",", ((IEnumerable) val).Cast<object>().Select(AsSubstitute)) + "]";
             }
-            return Value.ToString();
+            return val.ToString();
         }
         public string AsSubstitute()
         {

@@ -27,6 +27,7 @@
     <RootNamespace>ClickHouse.Ado</RootNamespace>
     <PreBuildEvent>for /d %%D in ("$(SolutionDir)\ClickHouse.Ado\Impl\ATG\*.*") DO $(SolutionDir)\Coco.exe %%D\%%~nD.atg -o %%D -frames %%D\..\
 </PreBuildEvent>
+    <Version>1.1.2</Version>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
