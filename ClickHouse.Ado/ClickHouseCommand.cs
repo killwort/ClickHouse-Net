@@ -134,10 +134,10 @@ namespace ClickHouse.Ado
             _clickHouseConnection.Formatter.ReadResponse();
         }
 
-        private static readonly Regex ParamRegex=new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|:)",RegexOptions.Compiled|RegexOptions.IgnoreCase);
+        private static readonly Regex ParamRegex=new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])",RegexOptions.Compiled|RegexOptions.IgnoreCase);
         private string SubstituteParameters(string commandText)
         {
-            return ParamRegex.Replace(commandText, m => m.Groups["n"].Value == ":" ? ":" : Parameters[m.Groups["n"].Value].AsSubstitute());
+            return ParamRegex.Replace(commandText, m => m.Groups["n"].Value == ":" || m.Groups["n"].Value == "@" ? m.Groups["n"].Value : Parameters[m.Groups["n"].Value].AsSubstitute());
         }
 
         public int ExecuteNonQuery()
