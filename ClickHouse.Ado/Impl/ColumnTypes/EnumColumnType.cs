@@ -27,11 +27,13 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             if (BaseSize == 8)
             {
                 var vals = new SimpleColumnType<byte>();
+                vals.Read(formatter,rows);
                 Data = vals.Data.Select(x => (int)x).ToArray();
             }
             else if (BaseSize == 16)
             {
                 var vals = new SimpleColumnType<short>();
+                vals.Read(formatter, rows);
                 Data = vals.Data.Select(x => (int) x).ToArray();
             }
             else
