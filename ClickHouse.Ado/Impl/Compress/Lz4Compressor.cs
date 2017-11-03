@@ -32,26 +32,29 @@ namespace ClickHouse.Ado.Impl.Compress
             return output.ToArray();
         }
 
-        protected override Stream Decompress(Stream uncompressed)
+        protected override byte[] Decompress(Stream compressed, out UInt128 compressedHash)
         {
             var header = new byte[9];
             int read = 0;
             do
             {
-                read += uncompressed.Read(header, read, header.Length - read);
+                read += compressed.Read(header, read, header.Length - read);
             } while (read < header.Length);
             if (header[0] != Header[0])
                 throw new FormatException($"Invalid header value {header[0]}");
+            
             var compressedSize = BitConverter.ToInt32(header, 1);
             var uncompressedSize = BitConverter.ToInt32(header, 5);
             read = 0;
             compressedSize -= header.Length;
-            var cdata = new byte[compressedSize];
+            var compressedBytes = new byte[compressedSize+header.Length];
+            Array.Copy(header, 0, compressedBytes, 0, header.Length);
             do
             {
-                read += uncompressed.Read(cdata, read, compressedSize - read);
+                read += compressed.Read(compressedBytes, header.Length + read, compressedSize - read);
             } while (read < compressedSize);
-            return new MemoryStream(LZ4Codec.Decode(cdata, 0, compressedSize, uncompressedSize));
+            compressedHash = ClickHouseCityHash.CityHash128(compressedBytes);
+            return LZ4Codec.Decode(compressedBytes, header.Length, compressedSize, uncompressedSize);
         }
 
         public override CompressionMethod Method => _useHc ? CompressionMethod.Lz4Hc : CompressionMethod.Lz4;

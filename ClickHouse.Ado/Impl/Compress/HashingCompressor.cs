@@ -25,20 +25,29 @@ namespace ClickHouse.Ado.Impl.Compress
 
         public override Stream BeginDecompression(Stream baseStream)
         {
-            _baseStream = baseStream;
-            var hashRead = new byte[16];
-            int read = 0;
-            do
+            return new ChunkedStream(() =>
             {
-                read += baseStream.Read(hashRead, read, 16 - read);
-            } while (read < 16);
-            //FIXME: We should check computed hash against hashRead to enforce validity.
-            return Decompress(baseStream);
+                _baseStream = baseStream;
+                var hashRead = new byte[16];
+                int read = 0;
+                do
+                {
+                    read += baseStream.Read(hashRead, read, 16 - read);
+                } while (read < 16);
+
+                var bytes = Decompress(baseStream, out var hash);
+                if (BitConverter.ToUInt64(hashRead, 0) != hash.Low)
+                    throw new ClickHouseException("Checksum verification failed.");
+                if (BitConverter.ToUInt64(hashRead, 8) != hash.High)
+                    throw new ClickHouseException("Checksum verification failed.");
+
+                return bytes;
+            });
         }
         public override void EndDecompression()
         {
         }
         protected abstract byte[] Compress(MemoryStream uncompressed);
-        protected abstract Stream Decompress(Stream uncompressed);
+        protected abstract byte[] Decompress(Stream compressed, out UInt128 compressedHash);
     }
 }

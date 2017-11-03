@@ -67,5 +67,7 @@ namespace ClickHouse.Ado.Impl
         }
 
         public override long Position { get { return _baseStream.Position; } set { _baseStream.Position = value; } }
+
+        public Stream BaseStream => _baseStream;
     }
 }

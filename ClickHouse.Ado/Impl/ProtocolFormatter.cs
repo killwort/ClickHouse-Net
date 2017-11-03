@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -120,7 +121,7 @@ namespace ClickHouse.Ado.Impl
             var len = ReadUInt();
             if (len > int.MaxValue)
                 throw new ArgumentException("Server sent too long string.");
-            var rv = Encoding.UTF8.GetString(ReadBytes((int)len));
+            var rv = len == 0 ? string.Empty : Encoding.UTF8.GetString(ReadBytes((int) len));
             return rv;
         }
 
@@ -129,7 +130,8 @@ namespace ClickHouse.Ado.Impl
             var bytes = new byte[i];
             int read = 0;
             int cur = 0;
-            var networkStream = _ioStream as System.Net.Sockets.NetworkStream;
+            var networkStream = _ioStream as NetworkStream ?? (_ioStream as UnclosableStream)?.BaseStream as NetworkStream;
+
             do
             {
                 cur = _ioStream.Read(bytes, read, i - read);
@@ -139,10 +141,13 @@ namespace ClickHouse.Ado.Impl
                     // check for DataAvailable forces an exception if socket is closed
                     if (networkStream != null && networkStream.DataAvailable)
                         continue;
+                    // when we read from non-NetworkStream there's no point in waiting for more data
+                    if (networkStream == null)
+                        throw new EndOfStreamException();
                     Thread.Sleep(1);
                 }
-            }
-            while (read < i);
+            } while (read < i);
+
             return bytes;
         }
 
