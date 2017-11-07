@@ -164,5 +164,14 @@ namespace ClickHouse.Test
                 
             }
         }
+        [TestMethod]
+        public void TestInsertFieldless()
+        {
+            using (var cnn = GetConnection())
+            {
+                var sql = "insert into vince_test values ('2017-05-17','CSA_CPTY1233',0)";
+                cnn.CreateCommand(sql).ExecuteNonQuery();
+            }
+        }
     }
 }

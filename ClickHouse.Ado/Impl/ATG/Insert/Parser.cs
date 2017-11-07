@@ -18,8 +18,8 @@ internal class Parser {
 	public const int _into = 6;
 	public const int maxT = 15;
 
-	const bool T = true;
-	const bool x = false;
+	const bool _T = true;
+	const bool _x = false;
 	const int minErrDist = 2;
 	
 	public Scanner scanner;
@@ -158,9 +158,11 @@ internal string oneParam,tableName;
 		Expect(4);
 		Expect(6);
 		Field(out tableName);
-		Expect(12);
-		FieldList(out fieldList);
-		Expect(13);
+		if (la.kind == 12) {
+			Get();
+			FieldList(out fieldList);
+			Expect(13);
+		}
 		Expect(5);
 		if (la.kind == 8 || la.kind == 9) {
 			Parameter(out oneParam);
@@ -186,7 +188,7 @@ internal string oneParam,tableName;
 	}
 	
 	static readonly bool[,] set = {
-		{T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x}
 
 	};
 } // end Parser
