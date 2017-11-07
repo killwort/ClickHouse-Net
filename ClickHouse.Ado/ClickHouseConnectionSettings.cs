@@ -101,6 +101,7 @@ namespace ClickHouse.Ado
         public string Database{ get; private set; }
         public bool Compress { get; private set; }
         public string Compressor { get; private set; }
+        public bool CheckCompressedHash { get; private set; } = true;
         public bool Decompress{ get; private set; }
         public bool Extremes{ get; private set; }
         public int MaxThreads{ get; private set; }

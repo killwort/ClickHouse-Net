@@ -5,8 +5,14 @@ namespace ClickHouse.Ado.Impl.Compress
 {
     abstract class HashingCompressor : Compressor
     {
+        private readonly ClickHouseConnectionSettings _settings;
         private Stream _baseStream;
         private MemoryStream _uncompressed;
+
+        protected HashingCompressor(ClickHouseConnectionSettings settings)
+        {
+            _settings = settings;
+        }
 
         public override Stream BeginCompression(Stream baseStream)
         {
@@ -36,9 +42,10 @@ namespace ClickHouse.Ado.Impl.Compress
                 } while (read < 16);
 
                 var bytes = Decompress(baseStream, out var hash);
-                if (BitConverter.ToUInt64(hashRead, 0) != hash.Low)
+                
+                if (_settings.CheckCompressedHash && BitConverter.ToUInt64(hashRead, 0) != hash.Low)
                     throw new ClickHouseException("Checksum verification failed.");
-                if (BitConverter.ToUInt64(hashRead, 8) != hash.High)
+                if (_settings.CheckCompressedHash && BitConverter.ToUInt64(hashRead, 8) != hash.High)
                     throw new ClickHouseException("Checksum verification failed.");
 
                 return bytes;

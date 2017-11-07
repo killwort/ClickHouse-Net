@@ -12,7 +12,7 @@ namespace ClickHouse.Test
     [TestClass]
     public class SimpleTests
     {
-        private ClickHouseConnection GetConnection(string cstr= "Compress=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=default;User=andreya;Password=123")
+        private ClickHouseConnection GetConnection(string cstr= "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=default;User=andreya;Password=123")
         {
             var settings = new ClickHouseConnectionSettings(cstr);
             var cnn = new ClickHouseConnection(settings);
@@ -170,6 +170,15 @@ namespace ClickHouse.Test
             using (var cnn = GetConnection())
             {
                 var sql = "insert into vince_test values ('2017-05-17','CSA_CPTY1233',0)";
+                cnn.CreateCommand(sql).ExecuteNonQuery();
+            }
+        }
+        [TestMethod]
+        public void TestChecksumError()
+        {
+            using (var cnn = GetConnection())
+            {
+                var sql = "insert into vince_test(fakedate, csa, server) values('2017-05-17', 'CSA_CPTY1233', 0)";
                 cnn.CreateCommand(sql).ExecuteNonQuery();
             }
         }
