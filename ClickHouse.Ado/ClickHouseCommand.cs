@@ -79,14 +79,10 @@ namespace ClickHouse.Ado
             {
                 var xText = new StringBuilder("INSERT INTO ");
                 xText.Append(insertParser.tableName);
-                if (insertParser.fieldList != null)
-                {
-                    xText.Append("(");
-                    insertParser.fieldList.Aggregate(xText, (builder, fld) => builder.Append(fld).Append(','));
-                    xText.Remove(xText.Length - 1, 1);
-                    xText.Append(")");
-                }
-                xText.Append(" VALUES");
+                xText.Append("(");
+                insertParser.fieldList.Aggregate(xText, (builder, fld) => builder.Append(fld).Append(','));
+                xText.Remove(xText.Length - 1, 1);
+                xText.Append(")VALUES");
 
                 _clickHouseConnection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false);
                 var schema = _clickHouseConnection.Formatter.ReadSchema();
@@ -119,9 +115,11 @@ namespace ClickHouse.Ado
                 {
                     if (schema.Columns.Count != insertParser.valueList.Count())
                         throw new FormatException($"Value count mismatch. Server expected {schema.Columns.Count} and query contains {insertParser.valueList.Count()}.");
-                    for (var i = 0; i < insertParser.valueList.Count(); i++)
+
+                    var valueList = insertParser.valueList as List<Parser.ValueType> ?? insertParser.valueList.ToList();
+                    for (var i = 0; i < valueList.Count; i++)
                     {
-                        var val = insertParser.valueList.ElementAt(i);
+                        var val = valueList[i];
                         if (val.TypeHint == Parser.ConstType.Parameter)
                             schema.Columns[i].Type.ValueFromParam(Parameters[val.StringValue]);
                         else
@@ -184,7 +182,12 @@ namespace ClickHouse.Ado
             }
         }
 
-        public ClickHouseConnection Connection => _clickHouseConnection;
+        public ClickHouseConnection Connection
+        {
+            get => _clickHouseConnection;
+            set => _clickHouseConnection = value;
+        }
+
         public string CommandText { get; set; }
         public int CommandTimeout { get; set; }
         public ClickHouseParameterCollection Parameters { get; }=new ClickHouseParameterCollection();
