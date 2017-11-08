@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CS0618
+
+using System;
 using System.Collections;
 #if !NETCOREAPP11
 using System.Data;
@@ -28,7 +30,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public DateTime[] Data { get; protected set; }
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
-            var itemSize = Marshal.SizeOf<ushort>();
+            var itemSize = Marshal.SizeOf(typeof(ushort));
             var bytes = formatter.ReadBytes(itemSize * rows);
             var xdata = new ushort[rows];
             Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);
