@@ -242,7 +242,7 @@ namespace ClickHouse.Ado.Impl
         public void Handshake(ClickHouseConnectionSettings connectionSettings)
         {
             _connectionSettings = connectionSettings;
-            _compressor = connectionSettings.Compress ? Compressor.Create(connectionSettings.Compressor):null;
+            _compressor = connectionSettings.Compress ? Compressor.Create(connectionSettings):null;
             WriteUInt((int)ClientMessageType.Hello);
 
             WriteString(ClientInfo.ClientName);

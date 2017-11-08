@@ -7,7 +7,7 @@ namespace ClickHouse.Ado.Impl.Compress
 {
     class Lz4Compressor : HashingCompressor
     {
-        public Lz4Compressor(bool useHc)
+        public Lz4Compressor(bool useHc, ClickHouseConnectionSettings settings):base(settings)
         {
             _useHc = useHc;
         }

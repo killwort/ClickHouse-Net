@@ -31,8 +31,8 @@ using System;
 
 internal class Parser {
 -->constants
-	const bool T = true;
-	const bool x = false;
+	const bool _T = true;
+	const bool _x = false;
 	const int minErrDist = 2;
 	
 	public Scanner scanner;

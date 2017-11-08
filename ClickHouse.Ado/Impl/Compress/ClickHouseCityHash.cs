@@ -229,7 +229,7 @@ namespace ClickHouse.Ado.Impl.Compress
             else
             {
                 // len > 16
-                c = HashLen16(Fetch64(s, +len - 8) + k1, a);
+                c = HashLen16(Fetch64(s, off + len - 8) + k1, a);
                 d = HashLen16(b + (ulong) len, c + Fetch64(s, off + len - 16));
                 a += d;
                 do

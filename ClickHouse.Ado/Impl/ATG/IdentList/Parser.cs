@@ -12,8 +12,8 @@ internal class Parser {
 	public const int _ident = 1;
 	public const int maxT = 3;
 
-	const bool T = true;
-	const bool x = false;
+	const bool _T = true;
+	const bool _x = false;
 	const int minErrDist = 2;
 	
 	public Scanner scanner;
@@ -118,7 +118,7 @@ internal IEnumerable<string > result;
 	}
 	
 	static readonly bool[,] set = {
-		{T,x,x,x, x}
+		{_T,_x,_x,_x, _x}
 
 	};
 } // end Parser

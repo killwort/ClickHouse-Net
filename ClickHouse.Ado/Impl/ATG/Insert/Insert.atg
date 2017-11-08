@@ -70,9 +70,11 @@ Insert	(.  .)
 	insert
 	into
 	Field<out tableName>
+	[
 	"("
 	FieldList<out fieldList>
 	")"
+	]
 	values
 	(
 		Parameter<out oneParam>

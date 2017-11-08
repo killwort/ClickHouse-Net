@@ -11,9 +11,9 @@ namespace ClickHouse.Ado.Impl.Compress
         public abstract Stream BeginDecompression(Stream baseStream);
         public abstract void EndDecompression();
 
-        public static Compressor Create(string compressor)
+        public static Compressor Create(ClickHouseConnectionSettings settings)
         {
-            switch ((compressor??"").ToLower())
+            switch ((settings.Compressor??"").ToLower())
             {
                 case "zstd":
                     throw new NotImplementedException();
@@ -24,10 +24,10 @@ namespace ClickHouse.Ado.Impl.Compress
                 case "lz4hc":
                     throw new NotImplementedException();
                     //Actually server doesn't interpret this well. Maybe LZ4HC implementation is slightly different?
-                    return new Lz4Compressor(true);
+                    return new Lz4Compressor(true, settings);
                 case "lz4":
                 default:
-                    return new Lz4Compressor(false);
+                    return new Lz4Compressor(false, settings);
             }
         }
 

@@ -79,10 +79,14 @@ namespace ClickHouse.Ado
             {
                 var xText = new StringBuilder("INSERT INTO ");
                 xText.Append(insertParser.tableName);
-                xText.Append("(");
-                insertParser.fieldList.Aggregate(xText, (builder, fld) => builder.Append(fld).Append(','));
-                xText.Remove(xText.Length - 1, 1);
-                xText.Append(")VALUES");
+                if (insertParser.fieldList != null)
+                {
+                    xText.Append("(");
+                    insertParser.fieldList.Aggregate(xText, (builder, fld) => builder.Append(fld).Append(','));
+                    xText.Remove(xText.Length - 1, 1);
+                    xText.Append(")");
+                }
+                xText.Append(" VALUES");
 
                 _clickHouseConnection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false);
                 var schema = _clickHouseConnection.Formatter.ReadSchema();
