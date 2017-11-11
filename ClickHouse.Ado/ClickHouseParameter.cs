@@ -67,5 +67,10 @@ namespace ClickHouse.Ado
         {
             return AsSubstitute(Value);
         }
+
+        public override string ToString()
+        {
+            return $"{ParameterName}({DbType}): {Value}";
+        }
     }
 }

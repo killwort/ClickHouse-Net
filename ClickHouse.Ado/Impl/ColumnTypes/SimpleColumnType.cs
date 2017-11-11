@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CS0618
+
+using System;
 using System.Collections;
 #if !NETCOREAPP11
 using System.Data;
@@ -25,7 +27,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public T[] Data { get; private set; }
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
-            var itemSize = Marshal.SizeOf<T>();
+            var itemSize = Marshal.SizeOf(typeof(T));
             var bytes =formatter.ReadBytes(itemSize * rows);
             Data = new T[rows];
             Buffer.BlockCopy(bytes,0,Data,0, itemSize * rows);
@@ -51,7 +53,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override void Write(ProtocolFormatter formatter, int rows)
         {
             Debug.Assert(Rows == rows, "Row count mismatch!");
-            var itemSize = Marshal.SizeOf<T>();
+            var itemSize = Marshal.SizeOf(typeof(T));
             var bytes = new byte[itemSize*rows];
             Buffer.BlockCopy(Data, 0, bytes, 0, itemSize*rows);
             formatter.WriteBytes(bytes);
@@ -73,9 +75,15 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 #if NETCOREAPP11
                 parameter.DbType==DbType.Integral || parameter.DbType==DbType.Float
 #else
-                parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64
-                || parameter.DbType == DbType.UInt16 || parameter.DbType == DbType.UInt32 || parameter.DbType == DbType.UInt64
-                || parameter.DbType == DbType.Single || parameter.DbType == DbType.Decimal || parameter.DbType == DbType.Decimal
+                parameter.DbType == DbType.Int16 
+                || parameter.DbType == DbType.Int32 
+                || parameter.DbType == DbType.Int64
+                || parameter.DbType == DbType.UInt16 
+                || parameter.DbType == DbType.UInt32 
+                || parameter.DbType == DbType.UInt64
+                || parameter.DbType == DbType.Single 
+                || parameter.DbType == DbType.Decimal 
+                || parameter.DbType == DbType.Double
 #endif
                 )
             {

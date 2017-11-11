@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CS0618
+
+using System;
 #if !NETCOREAPP11
 using System.Data;
 #endif
@@ -25,7 +27,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
-            var itemSize = Marshal.SizeOf<uint>();
+            var itemSize = Marshal.SizeOf(typeof(uint));
             var bytes = formatter.ReadBytes(itemSize * rows);
             var xdata = new uint[rows];
             Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);

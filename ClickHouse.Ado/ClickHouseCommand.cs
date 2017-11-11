@@ -69,7 +69,7 @@ namespace ClickHouse.Ado
 
 #endif
 
-        private void Execute(bool readResponse)
+        private void Execute(bool readResponse, ClickHouseConnection connection)
         {
             var insertParser = new Impl.ATG.Insert.Parser(new Impl.ATG.Insert.Scanner(new MemoryStream(Encoding.UTF8.GetBytes(CommandText))));
             insertParser.errors.errorStream=new StringWriter();
@@ -88,8 +88,8 @@ namespace ClickHouse.Ado
                 }
                 xText.Append(" VALUES");
 
-                _clickHouseConnection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false);
-                var schema = _clickHouseConnection.Formatter.ReadSchema();
+                connection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false);
+                var schema = connection.Formatter.ReadSchema();
                 if (insertParser.oneParam != null)
                 {
                     var table = ((IEnumerable) Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
@@ -119,23 +119,25 @@ namespace ClickHouse.Ado
                 {
                     if (schema.Columns.Count != insertParser.valueList.Count())
                         throw new FormatException($"Value count mismatch. Server expected {schema.Columns.Count} and query contains {insertParser.valueList.Count()}.");
-                    for (var i = 0; i < insertParser.valueList.Count(); i++)
+
+                    var valueList = insertParser.valueList as List<Parser.ValueType> ?? insertParser.valueList.ToList();
+                    for (var i = 0; i < valueList.Count; i++)
                     {
-                        var val = insertParser.valueList.ElementAt(i);
+                        var val = valueList[i];
                         if (val.TypeHint == Parser.ConstType.Parameter)
                             schema.Columns[i].Type.ValueFromParam(Parameters[val.StringValue]);
                         else
                             schema.Columns[i].Type.ValueFromConst(val);
                     }
                 }
-                _clickHouseConnection.Formatter.SendBlocks(new[] { schema });
+                connection.Formatter.SendBlocks(new[] { schema });
             }
             else
             {
-                _clickHouseConnection.Formatter.RunQuery(SubstituteParameters(CommandText), QueryProcessingStage.Complete, null, null, null, false);
+                connection.Formatter.RunQuery(SubstituteParameters(CommandText), QueryProcessingStage.Complete, null, null, null, false);
             }
             if (!readResponse) return;
-            _clickHouseConnection.Formatter.ReadResponse();
+            connection.Formatter.ReadResponse();
         }
 
         private static readonly Regex ParamRegex=new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])",RegexOptions.Compiled|RegexOptions.IgnoreCase);
@@ -146,7 +148,7 @@ namespace ClickHouse.Ado
 
         public int ExecuteNonQuery()
         {
-            Execute(true);
+            Execute(true, _clickHouseConnection);
             return 0;
         }
 #if NETCOREAPP11
@@ -165,9 +167,10 @@ namespace ClickHouse.Ado
         {
             if((behavior &(CommandBehavior.SchemaOnly|CommandBehavior.KeyInfo|CommandBehavior.SingleResult|CommandBehavior.SingleRow|CommandBehavior.SequentialAccess))!=0)
                 throw new NotSupportedException($"CommandBehavior {behavior} is not supported.");
-            Execute(false);
 
-            return new ClickHouseDataReader(_clickHouseConnection, behavior);
+            var tempConnection = _clickHouseConnection;
+            Execute(false, tempConnection);
+            return new ClickHouseDataReader(tempConnection, behavior);
         }
 #endif
 
@@ -184,7 +187,12 @@ namespace ClickHouse.Ado
             }
         }
 
-        public ClickHouseConnection Connection => _clickHouseConnection;
+        public ClickHouseConnection Connection
+        {
+            get => _clickHouseConnection;
+            set => _clickHouseConnection = value;
+        }
+
         public string CommandText { get; set; }
         public int CommandTimeout { get; set; }
         public ClickHouseParameterCollection Parameters { get; }=new ClickHouseParameterCollection();

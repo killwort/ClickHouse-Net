@@ -6,7 +6,7 @@ namespace ClickHouse.Ado.Impl.Settings
 {
     internal class QuerySettings
     {
-        private Dictionary<string, SettingValue> _settings;
+        private readonly Dictionary<string, SettingValue> _settings = new Dictionary<string, SettingValue>();
 
         public void Set(string name, ulong value)
         {
@@ -51,8 +51,7 @@ namespace ClickHouse.Ado.Impl.Settings
         }
         public T Get<T>(string name, bool useDefaults=true)
         {
-            bool d;
-            return Get<T>(name, useDefaults, out d);
+            return Get<T>(name, useDefaults, out var _);
         }
         public object Get(string name, bool useDefaults, out bool isDefault)
         {
@@ -66,8 +65,7 @@ namespace ClickHouse.Ado.Impl.Settings
         }
         public object Get(string name, bool useDefaults = true)
         {
-            bool d;
-            return Get(name, useDefaults, out d);
+            return Get(name, useDefaults, out var _);
         }
 
         internal void Write(ProtocolFormatter formatter)
