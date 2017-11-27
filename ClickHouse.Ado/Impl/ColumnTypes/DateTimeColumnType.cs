@@ -27,7 +27,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
-            var itemSize = Marshal.SizeOf(typeof(uint));
+#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
+            var itemSize = sizeof(uint);
+#else
+            var itemSize = Marshal.SizeOf<uint>();
+#endif
             var bytes = formatter.ReadBytes(itemSize * rows);
             var xdata = new uint[rows];
             Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);

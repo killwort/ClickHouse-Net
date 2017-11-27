@@ -28,9 +28,14 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         }
 
         public DateTime[] Data { get; protected set; }
+
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
-            var itemSize = Marshal.SizeOf(typeof(ushort));
+#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
+            var itemSize = sizeof(ushort);
+#else
+            var itemSize = Marshal.SizeOf<ushort>();
+#endif
             var bytes = formatter.ReadBytes(itemSize * rows);
             var xdata = new ushort[rows];
             Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);
@@ -48,10 +53,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override void Write(ProtocolFormatter formatter, int rows)
         {
-            Debug.Assert(Rows==rows,"Row count mismatch!");
+            Debug.Assert(Rows == rows, "Row count mismatch!");
             foreach (var d in Data)
                 formatter.WriteBytes(BitConverter.GetBytes((ushort) ((d - UnixTimeBase).TotalDays)));
         }
+
         public override void ValueFromConst(Parser.ValueType val)
         {
             if (val.TypeHint == Parser.ConstType.String)
@@ -59,16 +65,18 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             else
                 throw new InvalidCastException("Cannot convert numeric value to Date.");
         }
+
         public override void ValueFromParam(ClickHouseParameter parameter)
         {
             if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime
 #if !NETCOREAPP11
-                || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
+                                                || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
 #endif
-                )
+            )
             {
                 Data = new[] {(DateTime) Convert.ChangeType(parameter.Value, typeof(DateTime))};
-            }else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to Date.");
+            }
+            else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to Date.");
         }
 
         public override object Value(int currentRow)

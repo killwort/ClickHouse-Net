@@ -13,7 +13,7 @@ using Buffer = System.Buffer;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
-    internal class SimpleColumnType<T> : ColumnType 
+    internal class SimpleColumnType<T> : ColumnType
     {
         public SimpleColumnType()
         {
@@ -25,12 +25,17 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         }
 
         public T[] Data { get; private set; }
+
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
+#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
             var itemSize = Marshal.SizeOf(typeof(T));
-            var bytes =formatter.ReadBytes(itemSize * rows);
+#else
+            var itemSize = Marshal.SizeOf<T>();
+#endif
+            var bytes = formatter.ReadBytes(itemSize * rows);
             Data = new T[rows];
-            Buffer.BlockCopy(bytes,0,Data,0, itemSize * rows);
+            Buffer.BlockCopy(bytes, 0, Data, 0, itemSize * rows);
         }
 
         public override int Rows => Data?.Length ?? 0;
@@ -53,16 +58,20 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override void Write(ProtocolFormatter formatter, int rows)
         {
             Debug.Assert(Rows == rows, "Row count mismatch!");
+#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
             var itemSize = Marshal.SizeOf(typeof(T));
-            var bytes = new byte[itemSize*rows];
-            Buffer.BlockCopy(Data, 0, bytes, 0, itemSize*rows);
+#else
+            var itemSize = Marshal.SizeOf<T>();
+#endif
+            var bytes = new byte[itemSize * rows];
+            Buffer.BlockCopy(Data, 0, bytes, 0, itemSize * rows);
             formatter.WriteBytes(bytes);
         }
 
         public override void ValueFromConst(Parser.ValueType val)
         {
             if (val.TypeHint == Parser.ConstType.String)
-                Data = new[] { (T)Convert.ChangeType(ProtocolFormatter.UnescapeStringValue(val.StringValue), typeof(T)) };
+                Data = new[] {(T) Convert.ChangeType(ProtocolFormatter.UnescapeStringValue(val.StringValue), typeof(T))};
             else if (val.TypeHint == Parser.ConstType.Number)
                 Data = new[] {(T) Convert.ChangeType(val.StringValue, typeof(T))};
             else
@@ -85,12 +94,13 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
                 || parameter.DbType == DbType.Decimal 
                 || parameter.DbType == DbType.Double
 #endif
-                )
+            )
             {
                 Data = new[] {(T) Convert.ChangeType(parameter.Value, typeof(T))};
             }
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to {typeof(T).Name}.");
         }
+
         public override object Value(int currentRow)
         {
             return Data[currentRow];

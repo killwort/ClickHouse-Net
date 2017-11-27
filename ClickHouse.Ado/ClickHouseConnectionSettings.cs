@@ -20,7 +20,12 @@ namespace ClickHouse.Ado
 		}
         private void SetValue(string name, string value)
         {
-            Properties[name].SetMethod.Invoke(this, new[] {Convert.ChangeType(value, Properties[name].PropertyType)});
+#if FRAMEWORK20 || FRAMEWORK40
+            Properties[name].GetSetMethod()
+#else
+            Properties[name].SetMethod
+#endif
+            .Invoke(this, new[] {Convert.ChangeType(value, Properties[name].PropertyType)});
         }
         public ClickHouseConnectionSettings(string connectionString)
         {
@@ -122,7 +127,7 @@ namespace ClickHouse.Ado
             {
                 builder.Append(prop.Key);
                 builder.Append("=\"");
-                builder.Append(prop.Value.GetValue(this).ToString().Replace("\\", "\\\\").Replace("\"", "\\\""));
+                builder.Append(prop.Value.GetValue(this, null).ToString().Replace("\\", "\\\\").Replace("\"", "\\\""));
                 builder.Append("\";");
             }
             return builder.ToString();
