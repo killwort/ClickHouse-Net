@@ -71,6 +71,11 @@ namespace ClickHouse.Ado
 
         private void Execute(bool readResponse, ClickHouseConnection connection)
         {
+            if (connection.State != ConnectionState.Open)
+            {
+                throw new InvalidOperationException("Connection isn't open");
+            }
+            
             var insertParser = new Impl.ATG.Insert.Parser(new Impl.ATG.Insert.Scanner(new MemoryStream(Encoding.UTF8.GetBytes(CommandText))));
             insertParser.errors.errorStream=new StringWriter();
             insertParser.Parse();
