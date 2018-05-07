@@ -47,7 +47,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override string AsClickHouseType()
         {
-            return $"Enum{BaseSize}({string.Join(",", Values.Select(x => $"{ProtocolFormatter.EscapeStringValue(x.Item1)}={x.Item2}"))})";
+            return $"Enum{BaseSize}({string.Join(",", Values.Select(x => $"{(x.Item1)}={x.Item2}"))})";
         }
 
         public override void Write(ProtocolFormatter formatter, int rows)
