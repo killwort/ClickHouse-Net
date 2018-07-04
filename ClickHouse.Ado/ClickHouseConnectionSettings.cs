@@ -125,9 +125,15 @@ namespace ClickHouse.Ado
             var builder = new StringBuilder();
             foreach (var prop in Properties)
             {
+                var value = prop.Value.GetValue(this, null);
+                if (value == null)
+                {
+                    continue;
+                }
+
                 builder.Append(prop.Key);
                 builder.Append("=\"");
-                builder.Append(prop.Value.GetValue(this, null).ToString().Replace("\\", "\\\\").Replace("\"", "\\\""));
+                builder.Append(value.ToString().Replace("\\", "\\\\").Replace("\"", "\\\""));
                 builder.Append("\";");
             }
             return builder.ToString();
