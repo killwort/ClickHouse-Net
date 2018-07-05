@@ -24,7 +24,7 @@ namespace ClickHouse.Test
         public void SelectIn()
         {
             using (var cnn = GetConnection())
-            using (var cmd = cnn.CreateCommand("SELECT * FROM test_data WHERE user_id IN (@values)"))
+            using (var cmd = cnn.CreateCommand("SELECT * FROM `test_data` WHERE user_id IN (@values)"))
             {
                 cmd.Parameters.Add("values", DbType.UInt64, new[] {1L, 2L, 3L});
                 using (var reader = cmd.ExecuteReader())

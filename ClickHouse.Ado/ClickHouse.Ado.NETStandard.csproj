@@ -3,10 +3,10 @@
   <PropertyGroup>
     <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
     <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
-    <VersionPrefix>1.1.5</VersionPrefix>
+    <VersionPrefix>1.1.6</VersionPrefix>
     <Authors>Andrey Zakharov</Authors>
 	
-    <TargetFrameworks>netstandard1.5;net451;netcoreapp1.1;net45;net40</TargetFrameworks>
+    <TargetFrameworks>netstandard1.5;net45</TargetFrameworks>
 <!--    <TargetFramework>net451</TargetFramework>-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>ClickHouse.Ado</AssemblyName>
