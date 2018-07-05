@@ -11,12 +11,14 @@ namespace ClickHouse.Ado.Impl.ATG.Insert {
 internal class Parser {
 	public const int _EOF = 0;
 	public const int _ident = 1;
-	public const int _stringValue = 2;
-	public const int _numValue = 3;
-	public const int _insert = 4;
-	public const int _values = 5;
-	public const int _into = 6;
-	public const int maxT = 15;
+	public const int _identBackquoted = 2;
+	public const int _identQuoted = 3;
+	public const int _stringValue = 4;
+	public const int _numValue = 5;
+	public const int _insert = 6;
+	public const int _values = 7;
+	public const int _into = 8;
+	public const int maxT = 17;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -98,15 +100,24 @@ internal string oneParam,tableName;
 
 	
 	void Field(out string name ) {
-		Expect(1);
-		name=t.val; 
+		name=null; 
+		if (la.kind == 1) {
+			Get();
+			name=t.val; 
+		} else if (la.kind == 2) {
+			Get();
+			name=t.val.Substring(1,t.val.Length-2); 
+		} else if (la.kind == 3) {
+			Get();
+			name=t.val.Substring(1,t.val.Length-2); 
+		} else SynErr(18);
 	}
 
 	void FieldList(out IEnumerable<string> elements ) {
 		var rv=new List<string>(); elements=rv; string elem; IEnumerable<string> inner; 
 		Field(out elem);
 		rv.Add(elem); 
-		if (la.kind == 7) {
+		if (la.kind == 9) {
 			Get();
 			FieldList(out inner);
 			rv.AddRange(inner); 
@@ -114,39 +125,39 @@ internal string oneParam,tableName;
 	}
 
 	void Parameter(out string name ) {
-		if (la.kind == 8) {
+		if (la.kind == 10) {
 			Get();
-		} else if (la.kind == 9) {
+		} else if (la.kind == 11) {
 			Get();
-		} else SynErr(16);
+		} else SynErr(19);
 		Expect(1);
 		name=t.val; 
 	}
 
 	void Value(out ValueType val ) {
 		val = null; string paramName=null; IEnumerable<ValueType > inner; 
-		if (la.kind == 2) {
+		if (la.kind == 4) {
 			Get();
 			val=new ValueType{StringValue=t.val,TypeHint=ConstType.String}; 
-		} else if (la.kind == 8 || la.kind == 9) {
+		} else if (la.kind == 10 || la.kind == 11) {
 			Parameter(out paramName);
 			val=new ValueType{StringValue=paramName,TypeHint=ConstType.Parameter}; 
-		} else if (la.kind == 3) {
+		} else if (la.kind == 5) {
 			Get();
 			val=new ValueType{StringValue=t.val,TypeHint=ConstType.Number}; 
-		} else if (la.kind == 10) {
+		} else if (la.kind == 12) {
 			Get();
 			ValueList(out inner);
 			val=new ValueType{ArrayValue=inner.ToArray(), TypeHint=ConstType.Array}; 
-			Expect(11);
-		} else SynErr(17);
+			Expect(13);
+		} else SynErr(20);
 	}
 
 	void ValueList(out IEnumerable<ValueType > elements ) {
 		var rv=new List<ValueType >(); elements=rv; ValueType elem; IEnumerable<ValueType > inner; 
 		Value(out elem);
 		rv.Add(elem); 
-		if (la.kind == 7) {
+		if (la.kind == 9) {
 			Get();
 			ValueList(out inner);
 			rv.AddRange(inner); 
@@ -155,23 +166,23 @@ internal string oneParam,tableName;
 
 	void Insert() {
 		
-		Expect(4);
 		Expect(6);
+		Expect(8);
 		Field(out tableName);
-		if (la.kind == 12) {
+		if (la.kind == 14) {
 			Get();
 			FieldList(out fieldList);
-			Expect(13);
+			Expect(15);
 		}
-		Expect(5);
-		if (la.kind == 8 || la.kind == 9) {
+		Expect(7);
+		if (la.kind == 10 || la.kind == 11) {
 			Parameter(out oneParam);
-		} else if (la.kind == 12) {
+		} else if (la.kind == 14) {
 			Get();
 			ValueList(out valueList);
-			Expect(13);
-		} else SynErr(18);
-		while (la.kind == 14) {
+			Expect(15);
+		} else SynErr(21);
+		while (la.kind == 16) {
 			Get();
 		}
 	}
@@ -188,7 +199,7 @@ internal string oneParam,tableName;
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x}
 
 	};
 } // end Parser
@@ -204,23 +215,26 @@ internal class Errors {
 		switch (n) {
 			case 0: s = "EOF expected"; break;
 			case 1: s = "ident expected"; break;
-			case 2: s = "stringValue expected"; break;
-			case 3: s = "numValue expected"; break;
-			case 4: s = "insert expected"; break;
-			case 5: s = "values expected"; break;
-			case 6: s = "into expected"; break;
-			case 7: s = "\",\" expected"; break;
-			case 8: s = "\"@\" expected"; break;
-			case 9: s = "\":\" expected"; break;
-			case 10: s = "\"[\" expected"; break;
-			case 11: s = "\"]\" expected"; break;
-			case 12: s = "\"(\" expected"; break;
-			case 13: s = "\")\" expected"; break;
-			case 14: s = "\";\" expected"; break;
-			case 15: s = "??? expected"; break;
-			case 16: s = "invalid Parameter"; break;
-			case 17: s = "invalid Value"; break;
-			case 18: s = "invalid Insert"; break;
+			case 2: s = "identBackquoted expected"; break;
+			case 3: s = "identQuoted expected"; break;
+			case 4: s = "stringValue expected"; break;
+			case 5: s = "numValue expected"; break;
+			case 6: s = "insert expected"; break;
+			case 7: s = "values expected"; break;
+			case 8: s = "into expected"; break;
+			case 9: s = "\",\" expected"; break;
+			case 10: s = "\"@\" expected"; break;
+			case 11: s = "\":\" expected"; break;
+			case 12: s = "\"[\" expected"; break;
+			case 13: s = "\"]\" expected"; break;
+			case 14: s = "\"(\" expected"; break;
+			case 15: s = "\")\" expected"; break;
+			case 16: s = "\";\" expected"; break;
+			case 17: s = "??? expected"; break;
+			case 18: s = "invalid Field"; break;
+			case 19: s = "invalid Parameter"; break;
+			case 20: s = "invalid Value"; break;
+			case 21: s = "invalid Insert"; break;
 
 			default: s = "error " + n; break;
 		}

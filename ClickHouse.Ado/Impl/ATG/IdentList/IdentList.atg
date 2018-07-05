@@ -9,12 +9,16 @@ digit='0'..'9'.
 nonEscaped=ANY-"'"-"\\".
 TOKENS
 ident=letter{letter|digit}.
+identBackquoted="`" {nonEscaped|"\\\\"|"\\'"} "`".
+identQuoted='"' {nonEscaped|"\\\\"|"\\'"} '"'.
 IGNORE
 '\r'+'\n'+'\t'
 PRODUCTIONS
 Element<. out string name .>	(. name = null; .)
 =
 	ident	(. name=t.val; .)
+	| identBackquoted	(. name=t.val.Substring(1,t.val.Length-2); .)
+	| identQuoted	(. name=t.val.Substring(1,t.val.Length-2); .)
 .
 
 ElementList<. out IEnumerable<string > elements .>	(. var rv=new List<string >(); elements=rv; string elem; IEnumerable<string > inner; .)

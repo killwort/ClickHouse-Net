@@ -269,7 +269,7 @@ internal class Scanner {
 	}
 	
 	public Scanner (Stream s) {
-		buffer = new Buffer(s, true);
+		buffer = new UTF8Buffer(new Buffer(s, true));
 		Init();
 	}
 	
