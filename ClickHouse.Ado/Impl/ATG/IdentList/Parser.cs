@@ -10,7 +10,9 @@ namespace ClickHouse.Ado.Impl.ATG.IdentList {
 internal class Parser {
 	public const int _EOF = 0;
 	public const int _ident = 1;
-	public const int maxT = 3;
+	public const int _identBackquoted = 2;
+	public const int _identQuoted = 3;
+	public const int maxT = 5;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -85,15 +87,23 @@ internal IEnumerable<string > result;
 	
 	void Element(out string name ) {
 		name = null; 
-		Expect(1);
-		name=t.val; 
+		if (la.kind == 1) {
+			Get();
+			name=t.val; 
+		} else if (la.kind == 2) {
+			Get();
+			name=t.val.Substring(1,t.val.Length-2); 
+		} else if (la.kind == 3) {
+			Get();
+			name=t.val.Substring(1,t.val.Length-2); 
+		} else SynErr(6);
 	}
 
 	void ElementList(out IEnumerable<string > elements ) {
 		var rv=new List<string >(); elements=rv; string elem; IEnumerable<string > inner; 
 		Element(out elem);
 		rv.Add(elem); 
-		if (la.kind == 2) {
+		if (la.kind == 4) {
 			Get();
 			ElementList(out inner);
 			rv.AddRange(inner); 
@@ -118,7 +128,7 @@ internal IEnumerable<string > result;
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x}
+		{_T,_x,_x,_x, _x,_x,_x}
 
 	};
 } // end Parser
@@ -134,8 +144,11 @@ internal class Errors {
 		switch (n) {
 			case 0: s = "EOF expected"; break;
 			case 1: s = "ident expected"; break;
-			case 2: s = "\",\" expected"; break;
-			case 3: s = "??? expected"; break;
+			case 2: s = "identBackquoted expected"; break;
+			case 3: s = "identQuoted expected"; break;
+			case 4: s = "\",\" expected"; break;
+			case 5: s = "??? expected"; break;
+			case 6: s = "invalid Element"; break;
 
 			default: s = "error " + n; break;
 		}

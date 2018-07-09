@@ -101,15 +101,15 @@ namespace ClickHouse.Test
         {
             using (var cnn = GetConnection())
             {
-                var cmd = cnn.CreateCommand("INSERT INTO array_test (date,x, arr)values @bulk;");
+                var cmd = cnn.CreateCommand("INSERT INTO default.`super+` (date,email)values @bulk;");
                 cmd.Parameters.Add(new ClickHouseParameter
                 {
                     DbType = DbType.Object,
                     ParameterName = "bulk",
                     Value = new[]
                     {
-                        new object[] {DateTime.Now, 1, new[] {"aaaa@bbb.com", "awdasdas"}},
-                        new object[] {DateTime.Now.AddHours(-1), 2, new string[0]},
+                        new object[] {DateTime.Now,"aaaa@bbb.com"},
+                        new object[] {DateTime.Now.AddHours(-1),""},
                     }
                 });
                 cmd.ExecuteNonQuery();

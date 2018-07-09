@@ -208,8 +208,8 @@ internal class UTF8Buffer: Buffer {
 internal class Scanner {
 	const char EOL = '\n';
 	const int eofSym = 0; /* pdt */
-	const int maxT = 3;
-	const int noSym = 3;
+	const int maxT = 5;
+	const int noSym = 5;
 	char valCh;       // current input character (for token.val)
 
 	public Buffer buffer; // scanner buffer
@@ -232,7 +232,9 @@ internal class Scanner {
 	static Scanner() {
 		start = new Dictionary<int,int>(128);
 		for (int i = 97; i <= 122; ++i) start[i] = 1;
-		start[44] = 2; 
+		start[96] = 2; 
+		start[34] = 3; 
+		start[44] = 8; 
 		start[Buffer.EOF] = -1;
 
 	}
@@ -248,7 +250,7 @@ internal class Scanner {
 	}
 	
 	public Scanner (Stream s) {
-		buffer = new Buffer(s, true);
+		buffer = new UTF8Buffer(new Buffer(s, true));
 		Init();
 	}
 	
@@ -335,7 +337,35 @@ internal class Scanner {
 				if (ch >= '0' && ch <= '9' || ch >= 'a' && ch <= 'z') {AddCh(); goto case 1;}
 				else {t.kind = 1; break;}
 			case 2:
-				{t.kind = 2; break;}
+				if (ch <= '&' || ch >= '(' && ch <= '[' || ch >= ']' && ch <= '_' || ch >= 'a' && ch <= 65535) {AddCh(); goto case 2;}
+				else if (ch == '`') {AddCh(); goto case 4;}
+				else if (ch == 92) {AddCh(); goto case 5;}
+				else {goto case 0;}
+			case 3:
+				if (ch <= '!' || ch >= '#' && ch <= '&' || ch >= '(' && ch <= '[' || ch >= ']' && ch <= 65535) {AddCh(); goto case 3;}
+				else if (ch == '"') {AddCh(); goto case 6;}
+				else if (ch == 92) {AddCh(); goto case 7;}
+				else {goto case 0;}
+			case 4:
+				recEnd = pos; recKind = 2;
+				if (ch <= '&' || ch >= '(' && ch <= '[' || ch >= ']' && ch <= '_' || ch >= 'a' && ch <= 65535) {AddCh(); goto case 2;}
+				else if (ch == '`') {AddCh(); goto case 4;}
+				else if (ch == 92) {AddCh(); goto case 5;}
+				else {t.kind = 2; break;}
+			case 5:
+				if (ch == 39 || ch == 92) {AddCh(); goto case 2;}
+				else {goto case 0;}
+			case 6:
+				recEnd = pos; recKind = 3;
+				if (ch <= '!' || ch >= '#' && ch <= '&' || ch >= '(' && ch <= '[' || ch >= ']' && ch <= 65535) {AddCh(); goto case 3;}
+				else if (ch == '"') {AddCh(); goto case 6;}
+				else if (ch == 92) {AddCh(); goto case 7;}
+				else {t.kind = 3; break;}
+			case 7:
+				if (ch == 39 || ch == 92) {AddCh(); goto case 3;}
+				else {goto case 0;}
+			case 8:
+				{t.kind = 4; break;}
 
 		}
 		t.val = new String(tval, 0, tlen);

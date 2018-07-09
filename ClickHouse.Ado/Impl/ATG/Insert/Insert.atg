@@ -28,11 +28,16 @@ into="INTO".
 IGNORE
 '\r'+'\n'+'\t'
 PRODUCTIONS
-Field<. out string name .> (. name=null; .)
+Identifier<. out string name .> (. name=null; .)
 =
 	ident	(. name=t.val; .)
-	| identBackquoted	(. name=t.val.Substring(1,t.val.Length-2); .)
-	| identQuoted	(. name=t.val.Substring(1,t.val.Length-2); .)
+	| identBackquoted	(. name=t.val; .)
+	| identQuoted	(. name=t.val; .)
+.
+
+Field<. out string name .> (. name=null; string prefix="", suffix=""; .)
+=
+	Identifier<out prefix> ["." Identifier<out suffix> (. suffix="."+suffix; .)]	(. name=prefix+suffix; .)	
 .
 
 FieldList<. out IEnumerable<string> elements .>	(. var rv=new List<string>(); elements=rv; string elem; IEnumerable<string> inner; .)
