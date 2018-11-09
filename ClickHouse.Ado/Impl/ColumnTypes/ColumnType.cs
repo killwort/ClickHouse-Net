@@ -58,8 +58,33 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
                         return new NullableColumnType(Create(m.Groups["inner"].Value));
                     case "Array":
                         if (m.Groups["inner"].Value == "Null")
-                            return new ArrayColumnType(new NullableColumnType(new SimpleColumnType<byte>()));
-                        return new ArrayColumnType(Create(m.Groups["inner"].Value));
+                            return new ArrayColumnType<object>(new NullableColumnType(new SimpleColumnType<byte>()));
+                        else if (m.Groups["inner"].Value == "UInt32")
+                            return new ArrayColumnType<uint>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "Int32")
+                            return new ArrayColumnType<int>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "UInt16")
+                            return new ArrayColumnType<ushort>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "Int16")
+                            return new ArrayColumnType<short>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "UInt64")
+                            return new ArrayColumnType<ulong>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "Int64")
+                            return new ArrayColumnType<long>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "Double")
+                            return new ArrayColumnType<double>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "Decimal")
+                            return new ArrayColumnType<decimal>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "Byte")
+                            return new ArrayColumnType<byte>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "SByte")
+                            return new ArrayColumnType<sbyte>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "Boolean")
+                            return new ArrayColumnType<bool>(Create(m.Groups["inner"].Value));
+                        else if (m.Groups["inner"].Value == "DateTime")
+                            return new ArrayColumnType<DateTime>(Create(m.Groups["inner"].Value));
+
+                        return new ArrayColumnType<object>(Create(m.Groups["inner"].Value));
                     case "AggregateFunction":
                         //See ClickHouse\dbms\src\DataTypes\DataTypeFactory.cpp:128
                         throw new NotImplementedException($"AggregateFunction({m.Groups["inner"].Value}) column type is not supported");

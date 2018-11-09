@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.isql", "ClickHou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.Test", "ClickHouse.Test\ClickHouse.Test.csproj", "{739C884F-D6D8-4755-9A7A-3532EA49C49D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "TestConsole\TestConsole.csproj", "{658B33D0-2C25-4B78-802C-0312A6611E00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +29,15 @@ Global
 		{739C884F-D6D8-4755-9A7A-3532EA49C49D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{739C884F-D6D8-4755-9A7A-3532EA49C49D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{739C884F-D6D8-4755-9A7A-3532EA49C49D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{658B33D0-2C25-4B78-802C-0312A6611E00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{658B33D0-2C25-4B78-802C-0312A6611E00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{658B33D0-2C25-4B78-802C-0312A6611E00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{658B33D0-2C25-4B78-802C-0312A6611E00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FF54859E-7A2A-464F-A61F-48D37E600551}
 	EndGlobalSection
 EndGlobal

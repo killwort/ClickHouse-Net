@@ -6,7 +6,7 @@ using ClickHouse.Ado.Impl.ATG.Insert;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
-    internal class ArrayColumnType : ColumnType
+    internal class ArrayColumnType<T> : ColumnType
     {
         public ArrayColumnType(ColumnType innerType)
         {
@@ -79,9 +79,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override void ValuesFromConst(IEnumerable objects)
         {
             var offsets = new List<ulong>();
-            var itemsPlain = new List<object>();
+            var itemsPlain = new List<T>();
             ulong currentOffset = 0;
-            foreach (var item in objects.Cast<IEnumerable<object>>())
+            foreach (var item in objects.Cast<IEnumerable<T>>())
             {
                 currentOffset += (ulong)item.Count();
                 offsets.Add(currentOffset);

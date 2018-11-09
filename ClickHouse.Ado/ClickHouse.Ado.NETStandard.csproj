@@ -94,4 +94,8 @@ del /q $(SolutionDir).lock
       <Version>4.3.0</Version>
     </PackageReference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Impl\ColumnTypes\ArrayUInt32ColumnType .cs" />
+  </ItemGroup>
 </Project>
