@@ -55,6 +55,7 @@
     <Compile Include="Impl\ATG\IdentList\Scanner.cs" />
     <Compile Include="Impl\ATG\Enums\Parser.cs" />
     <Compile Include="Impl\ATG\Enums\Scanner.cs" />
+    <Compile Include="Impl\ColumnTypes\GuidColumnType.cs" />
     <Compile Include="Impl\Data\Block.cs" />
     <Compile Include="Impl\Data\BlockInfo.cs" />
     <Compile Include="Impl\Settings\BoolSettingValue.cs" />
