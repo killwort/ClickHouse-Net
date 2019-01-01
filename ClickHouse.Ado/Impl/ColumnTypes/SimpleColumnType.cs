@@ -13,7 +13,7 @@ using Buffer = System.Buffer;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
-    internal class SimpleColumnType<T> : ColumnType
+    internal class SimpleColumnType<T> : ColumnType where T : struct
     {
         public SimpleColumnType()
         {
@@ -96,7 +96,15 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 #endif
             )
             {
-                Data = new[] {(T) Convert.ChangeType(parameter.Value, typeof(T))};
+                //anibal 20181231
+                //if (((IDbDataParameter)parameter).IsNullable && parameter.Value == null)
+                //{
+                    
+                //}
+                //else
+                //{
+                    Data = new[] { (T)Convert.ChangeType(parameter.Value, typeof(T)) };
+                //}
             }
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to {typeof(T).Name}.");
         }
@@ -114,6 +122,13 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override void ValuesFromConst(IEnumerable objects)
         {
             Data = objects.Cast<T>().ToArray();
+        }
+
+        public override void NullableValuesFromConst(IEnumerable objects)
+        {
+            var cl = objects.Cast<Nullable<T>>();
+            var al = cl.Select(x => x.HasValue ? x.Value : Activator.CreateInstance(typeof(T))).Cast<T>();
+            Data = al.ToArray<T>();
         }
     }
 }

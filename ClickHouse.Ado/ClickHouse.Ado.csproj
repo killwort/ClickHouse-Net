@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,6 +32,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>test.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="LZ4, Version=1.0.10.93, Culture=neutral, PublicKeyToken=62e1b5ec1eec9bdd, processorArchitecture=MSIL">
       <HintPath>..\packages\lz4net.1.0.10.93\lib\net4-client\LZ4.dll</HintPath>
@@ -40,6 +50,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdoExtensions.cs" />
@@ -55,6 +66,7 @@
     <Compile Include="Impl\ATG\IdentList\Scanner.cs" />
     <Compile Include="Impl\ATG\Enums\Parser.cs" />
     <Compile Include="Impl\ATG\Enums\Scanner.cs" />
+    <Compile Include="Impl\Compress\ChunkedStream.cs" />
     <Compile Include="Impl\Data\Block.cs" />
     <Compile Include="Impl\Data\BlockInfo.cs" />
     <Compile Include="Impl\Settings\BoolSettingValue.cs" />
@@ -112,6 +124,7 @@
     <None Include="Impl\ATG\Parser.frame" />
     <None Include="Impl\ATG\Scanner.frame" />
     <None Include="packages.config" />
+    <None Include="test.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

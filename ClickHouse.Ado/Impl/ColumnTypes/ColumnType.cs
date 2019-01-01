@@ -26,7 +26,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             {"Int32", typeof(SimpleColumnType<Int32>)},
             {"Int64", typeof(SimpleColumnType<Int64>)},
             {"Float32", typeof(SimpleColumnType<float>)},
+            {"Single", typeof(SimpleColumnType<float>)},
             {"Float64", typeof(SimpleColumnType<double>)},
+            {"Double", typeof(SimpleColumnType<double>)},
             {"Date", typeof(DateColumnType)},
             {"DateTime", typeof(DateTimeColumnType)},
             {"String", typeof(StringColumnType)},
@@ -97,5 +99,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public abstract object Value(int currentRow);
         public abstract long IntValue(int currentRow);
         public abstract void ValuesFromConst(IEnumerable objects);
+        public virtual void NullableValuesFromConst(IEnumerable objects)
+        {
+            ValuesFromConst(objects);
+        }
     }
 }

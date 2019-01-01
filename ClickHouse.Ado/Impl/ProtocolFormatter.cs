@@ -333,6 +333,8 @@ namespace ClickHouse.Ado.Impl
 
         internal void SendBlocks(IEnumerable<Block> blocks)
         {
+            //for test watch
+            //((ClickHouse.Ado.Impl.ColumnTypes.SimpleColumnType<double>)((ClickHouse.Ado.Impl.ColumnTypes.NullableColumnType)blocks.First().Columns[0].Type).InnerType).Data
             if (blocks != null)
             {
                 foreach (var block in blocks)

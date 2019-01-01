@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+
 namespace ClickHouse.Ado.Impl.Compress
 {
     abstract class HashingCompressor : Compressor
