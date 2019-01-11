@@ -31,6 +31,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             {"DateTime", typeof(DateTimeColumnType)},
             {"String", typeof(StringColumnType)},
             {"Null", typeof(NullColumnType)},
+            {GuidColumnType.UuidColumnTypeName, typeof(GuidColumnType)},
             {"Nothing", typeof(NullColumnType)}
         };
 
