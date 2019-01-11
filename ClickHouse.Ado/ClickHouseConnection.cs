@@ -31,6 +31,7 @@ namespace ClickHouse.Ado
 
         private TcpClient _tcpClient;
         private Stream _stream;
+        private Stream _bufferedStream;
         /*private BinaryReader _reader;
         private BinaryWriter _writer;*/
         internal ProtocolFormatter Formatter { get;
@@ -63,6 +64,14 @@ namespace ClickHouse.Ado
 #endif
 				_stream.Dispose();
                 _stream = null;
+            }
+            if (_bufferedStream != null)
+            {
+#if !NETSTANDARD15 &&!NETCOREAPP11
+				_bufferedStream.Close();
+#endif
+                _bufferedStream.Dispose();
+                _bufferedStream = null;
             }
             if (_netStream != null)
             {
@@ -106,7 +115,8 @@ namespace ClickHouse.Ado
 			_tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
 #endif
             _netStream = new NetworkStream(_tcpClient.Client);
-            _stream =new UnclosableStream(_netStream);
+            _bufferedStream=new BufferedStream(_netStream);
+            _stream =new UnclosableStream(_bufferedStream);
             /*_reader=new BinaryReader(new UnclosableStream(_stream));
             _writer=new BinaryWriter(new UnclosableStream(_stream));*/
             var ci=new ClientInfo();

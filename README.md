@@ -5,7 +5,7 @@ rules however this is intentional.
 
 А ещё есть описание по-русски, см. ниже.
 
-## Imprortant usage notes
+## Important usage notes
 ### No multiple queries
 ClickHouse engine does not support parsing multiple queries per on `IDbCommand.Execute*` roundtrip. Please split your queries into separately executed commands.
 
