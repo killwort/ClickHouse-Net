@@ -35,7 +35,10 @@ namespace ClickHouse.Ado
 #endif
                 ||(DbType==0 && val is string)
             )
-                return ProtocolFormatter.EscapeStringValue(val.ToString());
+                if (!(val is string) && val is IEnumerable)
+                    return string.Join(",", ((IEnumerable) val).Cast<object>().Select(AsSubstitute));
+                else
+                    return ProtocolFormatter.EscapeStringValue(val.ToString());
             if (DbType == DbType.DateTime
 #if !NETCOREAPP11
                 || DbType == DbType.DateTime2 || DbType == DbType.DateTime2
