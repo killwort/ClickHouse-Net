@@ -19,6 +19,34 @@ namespace ClickHouse.Test
             cnn.Open();
             return cnn;
         }
+        
+        [TestMethod]
+        public void SelectDecimal()
+        {
+            using (var cnn = GetConnection())
+            using (var cmd = cnn.CreateCommand("SELECT date,dec1,dec2,dec3 FROM decimal_test"))
+            {
+                using (var reader = cmd.ExecuteReader())
+                {
+                    PrintData(reader);
+                }
+            }
+
+        }
+        [TestMethod]
+        public void DecimalParam()
+        {
+            using (var cnn = GetConnection()){
+                var cmd = cnn.CreateCommand("insert into decimal_test values('1970-01-01',@d,@d,@d,@d)");
+                cmd.AddParameter("d", DbType.Decimal, 666m);
+                cmd.ExecuteNonQuery();
+                cmd = cnn.CreateCommand("insert into decimal_test values('1970-01-01',@d,@d,@d,@d)");
+                cmd.AddParameter("d", DbType.Decimal, -666m);
+                cmd.ExecuteNonQuery();
+            }
+
+        }
+        
 
         [TestMethod]
         public void SelectIn()

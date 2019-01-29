@@ -39,6 +39,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         private static readonly Regex FixedStringRegex = new Regex(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex NestedRegex = new Regex(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
+        private static readonly Regex DecimalRegex = new Regex(@"^Decimal(((?<dlen>(32|64|128))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static ColumnType Create(string name)
         {
@@ -49,6 +50,27 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             if (m.Success)
             {
                 return new FixedStringColumnType(uint.Parse(m.Groups["len"].Value));
+            }
+            m = DecimalRegex.Match(name);
+            if (m.Success) {
+                uint len;
+                if (m.Groups["dlen"].Success)
+                    switch (m.Groups["dlen"].Value) {
+                        case "32":
+                            len = 9;
+                            break;
+                        case "64":
+                            len = 18;
+                            break;
+                        case "128":
+                            len = 38;
+                            break;
+                        default:
+                            throw new ClickHouseException($"Invalid Decimal bit-length {m.Groups["dlen"].Value}");
+                    }
+                else
+                    len = uint.Parse(m.Groups["len"].Value);
+                return new DecimalColumnType(len,uint.Parse(m.Groups["prec"].Value));
             }
             m = NestedRegex.Match(name);
             if (m.Success)
