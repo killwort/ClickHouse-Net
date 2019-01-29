@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 #if !NETCOREAPP11
@@ -13,16 +13,16 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado
 {
-    public class ClickHouseCommand 
+    public class ClickHouseCommand
 #if !NETCOREAPP11
-        :IDbCommand
+        : IDbCommand
 #endif
     {
         private ClickHouseConnection _clickHouseConnection;
 
-		public ClickHouseCommand() 
-		{
-		}
+        public ClickHouseCommand()
+        {
+        }
 
         public ClickHouseCommand(ClickHouseConnection clickHouseConnection)
         {
@@ -75,11 +75,11 @@ namespace ClickHouse.Ado
             {
                 throw new InvalidOperationException("Connection isn't open");
             }
-            
+
             var insertParser = new Impl.ATG.Insert.Parser(new Impl.ATG.Insert.Scanner(new MemoryStream(Encoding.UTF8.GetBytes(CommandText))));
-            insertParser.errors.errorStream=new StringWriter();
+            insertParser.errors.errorStream = new StringWriter();
             insertParser.Parse();
-            
+
             if (insertParser.errors.count == 0)
             {
                 var xText = new StringBuilder("INSERT INTO ");
@@ -97,14 +97,14 @@ namespace ClickHouse.Ado
                 var schema = connection.Formatter.ReadSchema();
                 if (insertParser.oneParam != null)
                 {
-                    var table = ((IEnumerable) Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
-                    var colCount=table.First().OfType<object>().Count();
-                    if(colCount!=schema.Columns.Count)
+                    var table = ((IEnumerable)Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
+                    var colCount = table.First().OfType<object>().Count();
+                    if (colCount != schema.Columns.Count)
                         throw new FormatException($"Column count in parameter table ({colCount}) doesn't match column count in schema ({schema.Columns.Count}).");
                     var cl = new List<List<object>>(colCount);
-                    for(var i=0;i<colCount;i++)
+                    for (var i = 0; i < colCount; i++)
                         cl.Add(new List<object>());
-                    var index=0;
+                    var index = 0;
                     cl = table.Aggregate(cl, (colList, row) =>
                     {
                         index = 0;
@@ -145,7 +145,7 @@ namespace ClickHouse.Ado
             connection.Formatter.ReadResponse();
         }
 
-        private static readonly Regex ParamRegex=new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])",RegexOptions.Compiled|RegexOptions.IgnoreCase);
+        private static readonly Regex ParamRegex = new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private string SubstituteParameters(string commandText)
         {
             return ParamRegex.Replace(commandText, m => m.Groups["n"].Value == ":" || m.Groups["n"].Value == "@" ? m.Groups["n"].Value : Parameters[m.Groups["n"].Value].AsSubstitute());
@@ -170,7 +170,7 @@ namespace ClickHouse.Ado
 
         public IDataReader ExecuteReader(CommandBehavior behavior)
         {
-            if((behavior &(CommandBehavior.SchemaOnly|CommandBehavior.KeyInfo|CommandBehavior.SingleResult|CommandBehavior.SingleRow|CommandBehavior.SequentialAccess))!=0)
+            if ((behavior & (CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo | CommandBehavior.SingleResult | CommandBehavior.SingleRow | CommandBehavior.SequentialAccess)) != 0)
                 throw new NotSupportedException($"CommandBehavior {behavior} is not supported.");
 
             var tempConnection = _clickHouseConnection;
@@ -181,15 +181,16 @@ namespace ClickHouse.Ado
 
         public object ExecuteScalar()
         {
+            object result = null;
             using (var reader = ExecuteReader())
             {
                 do
                 {
                     if (!reader.Read()) continue;
-                    return reader.GetValue(0);
+                    result = reader.GetValue(0);
                 } while (reader.NextResult());
-                return null;
             }
+            return result;
         }
 
         public ClickHouseConnection Connection
@@ -200,6 +201,6 @@ namespace ClickHouse.Ado
 
         public string CommandText { get; set; }
         public int CommandTimeout { get; set; }
-        public ClickHouseParameterCollection Parameters { get; }=new ClickHouseParameterCollection();
+        public ClickHouseParameterCollection Parameters { get; } = new ClickHouseParameterCollection();
     }
 }
