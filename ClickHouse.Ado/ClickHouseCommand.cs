@@ -98,7 +98,7 @@ namespace ClickHouse.Ado
                 if (insertParser.oneParam != null)
                 {
                     var table = ((IEnumerable)Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
-                    var colCount = table.First().OfType<object>().Count();
+                    var colCount = table.First().Cast<object>().Count();
                     if (colCount != schema.Columns.Count)
                         throw new FormatException($"Column count in parameter table ({colCount}) doesn't match column count in schema ({schema.Columns.Count}).");
                     var cl = new List<List<object>>(colCount);
