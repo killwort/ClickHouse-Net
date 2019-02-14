@@ -84,10 +84,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             foreach (var item in objects)
             {
                 ulong itemCount = 0;
-                foreach (var itemPart in item)
+                foreach (var itemPart in (IEnumerable)item)
                 {
                     itemCount++;
-                    itemsPlain.AddRange(itemPart);
+                    itemsPlain.Add(itemPart);
                 }
                 currentOffset += itemCount;
                 offsets.Add(currentOffset);
