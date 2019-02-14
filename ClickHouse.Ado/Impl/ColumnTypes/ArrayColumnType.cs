@@ -81,12 +81,18 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             var offsets = new List<ulong>();
             var itemsPlain = new List<object>();
             ulong currentOffset = 0;
-            foreach (var item in objects.Cast<IEnumerable<object>>())
+            foreach (var item in objects)
             {
-                currentOffset += (ulong)item.Count();
+                ulong itemCount = 0;
+                foreach (var itemPart in item)
+                {
+                    itemCount++;
+                    itemsPlain.AddRange(itemPart);
+                }
+                currentOffset += itemCount;
                 offsets.Add(currentOffset);
-                itemsPlain.AddRange(item);
             }
+            
             Offsets.ValuesFromConst(offsets);
             InnerType.ValuesFromConst(itemsPlain);
         }
