@@ -34,8 +34,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             var itemSize = Marshal.SizeOf(typeof(Guid));
             var bytes = formatter.ReadBytes(itemSize * rows);
             var xdata = new Guid[rows];
-            Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);
-            Data = xdata.ToArray();
+            for (var i = 0; i < rows; i++) {
+                var offset = itemSize * i;
+                xdata[i] = new Guid(BitConverter.ToInt32(bytes, offset), BitConverter.ToInt16(bytes, offset + 4), BitConverter.ToInt16(bytes, offset + 6), bytes[offset+8], bytes[offset+9], bytes[offset+10], bytes[offset+11], bytes[offset+12], bytes[offset+13], bytes[offset+14], bytes[offset+15]);
+            }
+            Data = xdata;
         }
 
         public override void ValueFromConst(Parser.ValueType val)
