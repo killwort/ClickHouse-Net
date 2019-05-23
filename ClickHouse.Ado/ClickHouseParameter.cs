@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Globalization;
 using System.Linq;
 #if !NETCOREAPP11
 using System.Data;
@@ -64,6 +65,9 @@ namespace ClickHouse.Ado
             {
                 return "[" + string.Join(",", ((IEnumerable) val).Cast<object>().Select(AsSubstitute)) + "]";
             }
+
+            if (val is IFormattable formattable)
+                return formattable.ToString(null, CultureInfo.InvariantCulture);
             return val.ToString();
         }
         public string AsSubstitute()
