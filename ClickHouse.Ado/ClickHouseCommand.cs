@@ -170,9 +170,6 @@ namespace ClickHouse.Ado
 
         public IDataReader ExecuteReader(CommandBehavior behavior)
         {
-            if ((behavior & (CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo | CommandBehavior.SingleResult | CommandBehavior.SingleRow | CommandBehavior.SequentialAccess)) != 0)
-                throw new NotSupportedException($"CommandBehavior {behavior} is not supported.");
-
             var tempConnection = _clickHouseConnection;
             Execute(false, tempConnection);
             return new ClickHouseDataReader(tempConnection, behavior);
