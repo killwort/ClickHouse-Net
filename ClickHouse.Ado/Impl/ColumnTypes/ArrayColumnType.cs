@@ -19,11 +19,15 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
             Offsets.Read(formatter, rows);
+            _outerRows = rows;
             var totalRows = Offsets.Data.Last();
             InnerType.Read(formatter,(int) totalRows);
         }
 
-        public override int Rows => InnerType.Rows;
+        private int _outerRows;
+
+        public override int Rows => _outerRows;
+        
         internal override Type CLRType => InnerType.CLRType.MakeArrayType();
 
         public override void ValueFromConst(Parser.ValueType val)

@@ -229,5 +229,31 @@ select _f1,_f2,sum(_f3)AS _f3,sum(_f4)AS _f4,groupUniqArray(_f5)[1]AS _f5,sum(_f
                 reader.ReadAll(rowReader => { });
             }
         }
+
+        [TestMethod]
+        public void TestBadReturnType() {
+            using (var cnn = GetConnection("Compress=True;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=dev_fbo;User=andreya;Password=123")) {
+                var cmd = cnn.CreateCommand();
+                cmd.CommandText = @"SELECT 
+   uniqCombinedMerge(uniq_links)                                                              uniq_links,
+       groupUniqArrayMerge(uniq_pages)                                                            uniq_pages,
+   hasAny(groupUniqArrayMerge(session_os) as session_os, ['windows', 'mac os'] as desktop_os) desktop,
+   hasAny(session_os, ['ios'] as mobile_os)                                                   mobile,
+   not (hasAll(arrayConcat(desktop_os, mobile_os), session_os))                               other,
+   sumMerge(download) > 0                                                                     download
+FROM page_view_aggregated_tracked_links_summary
+WHERE 1 = 1
+    AND tracked_link_id = 2855
+GROUP BY tracked_link_id";
+                var reader = cmd.ExecuteReader();
+                reader.ReadAll(
+                    rowReader => {
+                        var rowData = new object[rowReader.FieldCount];
+                        
+                        for (var i = 0; i < rowData.Length; i++)
+                            rowData[i] = reader[i];
+                    });
+            }
+        }
     }
 }
