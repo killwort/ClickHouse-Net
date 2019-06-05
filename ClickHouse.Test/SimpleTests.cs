@@ -255,5 +255,35 @@ GROUP BY tracked_link_id";
                     });
             }
         }
+        [TestMethod]
+        public void TestGuidByteOrder()
+        {
+            using (var cnn = GetConnection("Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=dev_fbo;User=andreya;Password=123")) {
+
+                
+                try {
+                    cnn.CreateCommand("DROP TABLE guid_test").ExecuteNonQuery();
+                } catch {
+                }
+
+                cnn.CreateCommand("CREATE TABLE guid_test (guid UUID,name String) ENGINE = MergeTree() ORDER BY (guid, name)").ExecuteNonQuery();
+                
+
+                cnn.CreateCommand("insert into guid_test values @bulk")
+                   .AddParameter("bulk", DbType.Object, new List<IList> {
+                       new ArrayList {
+                           Guid.Parse("dca0e161-9503-41a1-9de2-18528bfffe88"),
+                           "Bulk insert"
+                       }
+                   })
+                   .ExecuteNonQuery();
+                object g=null;
+                using (var reader = cnn.CreateCommand("SELECT * FROM guid_test").ExecuteReader())
+                    reader.ReadAll(r => g = r.GetValue(0));
+                Assert.IsNotNull(g);
+                Assert.IsInstanceOfType(g,typeof(Guid));
+                Assert.AreEqual("dca0e161-9503-41a1-9de2-18528bfffe88", ((Guid) g).ToString("D"));
+            }
+        }
     }
 }

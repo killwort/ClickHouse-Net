@@ -28,15 +28,20 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         {
             Data = data;
         }
-        
+
+        private static readonly int[] swapTable = {
+            4,5,6,7,2,3,0,1,15,14,13,12,11,10,9,8
+        };
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
             var itemSize = Marshal.SizeOf(typeof(Guid));
-            var bytes = formatter.ReadBytes(itemSize * rows);
             var xdata = new Guid[rows];
+            var guidSwappedBytes = new byte[itemSize];
             for (var i = 0; i < rows; i++) {
-                var offset = itemSize * i;
-                xdata[i] = new Guid(BitConverter.ToInt32(bytes, offset), BitConverter.ToInt16(bytes, offset + 4), BitConverter.ToInt16(bytes, offset + 6), bytes[offset+8], bytes[offset+9], bytes[offset+10], bytes[offset+11], bytes[offset+12], bytes[offset+13], bytes[offset+14], bytes[offset+15]);
+                var guidBytes = formatter.ReadBytes(itemSize);
+                for (var b = 0; b < itemSize; b++)
+                    guidSwappedBytes[b] = guidBytes[swapTable[b]];
+                xdata[i] = new Guid(guidSwappedBytes);
             }
             Data = xdata;
         }
@@ -64,8 +69,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override void Write(ProtocolFormatter formatter, int rows) {
             foreach (var d in Data) {
                 var guidBytes = d.ToByteArray();
-                formatter.WriteBytes(guidBytes, 4, 4);
-                formatter.WriteBytes(guidBytes, 2, 2);
+                formatter.WriteBytes(guidBytes, 6, 2);
+                formatter.WriteBytes(guidBytes, 4, 2);
+                formatter.WriteBytes(guidBytes, 0, 4);
                 for (var b = 15; b >= 8; b--)
                     formatter.WriteByte(guidBytes[b]);
             }
