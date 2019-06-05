@@ -61,11 +61,13 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             return UuidColumnTypeName;
         }
 
-        public override void Write(ProtocolFormatter formatter, int rows)
-        {
-            foreach (var d in Data)
-            {
-                formatter.WriteBytes(d.ToByteArray());
+        public override void Write(ProtocolFormatter formatter, int rows) {
+            foreach (var d in Data) {
+                var guidBytes = d.ToByteArray();
+                formatter.WriteBytes(guidBytes, 4, 4);
+                formatter.WriteBytes(guidBytes, 2, 2);
+                for (var b = 15; b >= 8; b--)
+                    formatter.WriteByte(guidBytes[b]);
             }
         }
 

@@ -159,6 +159,10 @@ namespace ClickHouse.Ado.Impl
         {
             _ioStream.Write(bytes, 0, bytes.Length);
         }
+        public void WriteBytes(byte[] bytes, int offset, int len)
+        {
+            _ioStream.Write(bytes, offset, len);
+        }
         #endregion
         #region Compression
 
