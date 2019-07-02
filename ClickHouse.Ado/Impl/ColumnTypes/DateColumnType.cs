@@ -93,5 +93,12 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         {
             Data = objects.Cast<DateTime>().ToArray();
         }
+
+        public override void NullableValuesFromConst(IEnumerable objects)
+        {
+            Data = objects.Cast<DateTime?>()
+                .Select(x => x.GetValueOrDefault())
+                .ToArray();
+        }
     }
 }

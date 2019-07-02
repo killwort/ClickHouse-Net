@@ -52,5 +52,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         {
             
         }
+
+        public override void NullableValuesFromConst(IEnumerable objects)
+        {
+
+        }
     }
 }

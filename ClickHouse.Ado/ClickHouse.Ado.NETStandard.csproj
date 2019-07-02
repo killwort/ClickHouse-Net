@@ -30,7 +30,8 @@ echo &gt; $(SolutionDir).lock
 for /d %%D in ("$(SolutionDir)ClickHouse.Ado\Impl\ATG\*.*") DO $(SolutionDir)Coco.exe %%D\%%~nD.atg -o %%D -frames %%D\..\
 del /q $(SolutionDir).lock
 :end</PreBuildEvent>
-    <Version>1.1.17</Version>
+    <Version>1.1.18</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net20' ">
