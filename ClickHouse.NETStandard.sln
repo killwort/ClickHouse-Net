@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29102.190
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickHouse.Ado.NETStandard", "ClickHouse.Ado\ClickHouse.Ado.NETStandard.csproj", "{A858251A-1B78-4AF8-A104-86ED711B1B07}"
 EndProject
@@ -30,8 +30,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {03B62F7F-126B-4342-9A0C-63884F2949D5}
 	EndGlobalSection
 EndGlobal
