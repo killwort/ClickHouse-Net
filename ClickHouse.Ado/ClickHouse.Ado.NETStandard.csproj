@@ -31,7 +31,7 @@ for /d %%D in ("$(SolutionDir)ClickHouse.Ado\Impl\ATG\*.*") DO $(SolutionDir)Coc
 del /q $(SolutionDir).lock
 :end</PreBuildEvent>
     <Version>1.1.17</Version>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 

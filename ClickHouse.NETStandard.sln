@@ -9,11 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.isql", "ClickHou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.Test", "ClickHouse.Test\ClickHouse.Test.csproj", "{739C884F-D6D8-4755-9A7A-3532EA49C49D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{2FF1D800-A17A-4AF1-A28F-A1E65A931AF6}"
-	ProjectSection(SolutionItems) = preProject
-		ClickHouse.Ado.nuspec = ClickHouse.Ado.nuspec
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
