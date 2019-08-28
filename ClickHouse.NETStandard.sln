@@ -1,13 +1,18 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickHouse.Ado.NETStandard", "ClickHouse.Ado\ClickHouse.Ado.NETStandard.csproj", "{A858251A-1B78-4AF8-A104-86ED711B1B07}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.isql", "ClickHouse.ISQL\ClickHouse.isql.csproj", "{747006A5-5160-4A18-B798-058BB3DCA4C2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickHouse.Test", "ClickHouse.Test\ClickHouse.Test.csproj", "{739C884F-D6D8-4755-9A7A-3532EA49C49D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{2FF1D800-A17A-4AF1-A28F-A1E65A931AF6}"
+	ProjectSection(SolutionItems) = preProject
+		ClickHouse.Ado.nuspec = ClickHouse.Ado.nuspec
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +35,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03B62F7F-126B-4342-9A0C-63884F2949D5}
 	EndGlobalSection
 EndGlobal
