@@ -27,6 +27,10 @@ namespace ClickHouse.Ado
 #endif
             .Invoke(this, new[] {Convert.ChangeType(value, Properties[name].PropertyType)});
         }
+
+        public ClickHouseConnectionSettings()
+        { }
+
         public ClickHouseConnectionSettings(string connectionString)
         {
             StringBuilder varName = new StringBuilder();
@@ -55,8 +59,7 @@ namespace ClickHouse.Ado
                 }
                 else if (c == '\\')
                     inEscape = true;
-                else if ( c == '"' || c == '\'')
-                
+                else if ( c == '"' || c == '\'')               
                     valueEscape = c;
                 else if (char.IsWhiteSpace(c))
                     continue;
@@ -81,44 +84,44 @@ namespace ClickHouse.Ado
             if (inValue) SetValue(varName.ToString(), varValue.ToString());
         }
 
-        public bool Async{ get; private set; }
-        public int BufferSize { get; private set; } = 4096;
-        public int ApacheBufferSize{ get; private set; }
-        public int SocketTimeout { get; private set; } = 1000;
-        public int ConnectionTimeout { get; private set; } = 1000;
-        public int DataTransferTimeout { get; private set; } = 1000;
-        public int KeepAliveTimeout{ get; private set; } = 1000;
-        public int TimeToLiveMillis { get; private set; }
-        public int DefaultMaxPerRoute{ get; private set; }
-        public int MaxTotal{ get; private set; }
-        public string Host{ get; private set; }
-        public int Port{ get; private set; }
+        public bool Async { get; set; }
+        public int BufferSize { get; set; } = 4096;
+        public int ApacheBufferSize{ get; set; }
+        public int SocketTimeout { get; set; } = 1000;
+        public int ConnectionTimeout { get; set; } = 1000;
+        public int DataTransferTimeout { get; set; } = 1000;
+        public int KeepAliveTimeout{ get; set; } = 1000;
+        public int TimeToLiveMillis { get; set; }
+        public int DefaultMaxPerRoute{ get; set; }
+        public int MaxTotal{ get; set; }
+        public string Host{ get; set; }
+        public int Port{ get; set; }
 
         //additional
-        public int MaxCompressBufferSize{ get; private set; }
+        public int MaxCompressBufferSize{ get; set; }
 
 
         // queries settings
-        public int MaxParallelReplicas{ get; private set; }
-        public string TotalsMode{ get; private set; }
-        public string QuotaKey{ get; private set; }
-        public int Priority{ get; private set; }
-        public string Database{ get; private set; }
-        public bool Compress { get; private set; }
-        public string Compressor { get; private set; }
-        public bool CheckCompressedHash { get; private set; } = true;
-        public bool Decompress{ get; private set; }
-        public bool Extremes{ get; private set; }
-        public int MaxThreads{ get; private set; }
-        public int MaxExecutionTime{ get; private set; }
-        public int MaxBlockSize{ get; private set; }
-        public int MaxRowsToGroupBy{ get; private set; }
-        public string Profile{ get; private set; }
-        public string User{ get; private set; }
-        public string Password{ get; private set; }
-        public bool DistributedAggregationMemoryEfficient{ get; private set; }
-        public int MaxBytesBeforeExternalGroupBy{ get; private set; }
-        public int MaxBytesBeforeExternalSort{ get; private set; }
+        public int MaxParallelReplicas{ get; set; }
+        public string TotalsMode{ get; set; }
+        public string QuotaKey{ get; set; }
+        public int Priority{ get; set; }
+        public string Database{ get; set; }
+        public bool Compress { get; set; }
+        public string Compressor { get; set; }
+        public bool CheckCompressedHash { get; set; } = true;
+        public bool Decompress{ get; set; }
+        public bool Extremes{ get; set; }
+        public int MaxThreads{ get; set; }
+        public int MaxExecutionTime{ get; set; }
+        public int MaxBlockSize{ get; set; }
+        public int MaxRowsToGroupBy{ get; set; }
+        public string Profile{ get; set; }
+        public string User{ get; set; }
+        public string Password{ get; set; }
+        public bool DistributedAggregationMemoryEfficient{ get; set; }
+        public int MaxBytesBeforeExternalGroupBy{ get; set; }
+        public int MaxBytesBeforeExternalSort{ get; set; }
 
         public override string ToString()
         {
