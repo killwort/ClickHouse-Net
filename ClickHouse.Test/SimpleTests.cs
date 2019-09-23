@@ -5,11 +5,11 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using ClickHouse.Ado;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace ClickHouse.Test
 {
-    [TestClass]
+    [TestFixture]
     public class SimpleTests
     {
         private ClickHouseConnection GetConnection(string cstr= "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=default;User=andreya;Password=123")
@@ -20,7 +20,7 @@ namespace ClickHouse.Test
             return cnn;
         }
         
-        [TestMethod]
+        [Test]
         public void SelectDecimal()
         {
             using (var cnn = GetConnection())
@@ -33,7 +33,7 @@ namespace ClickHouse.Test
             }
 
         }
-        [TestMethod]
+        [Test]
         public void DecimalParam()
         {
             using (var cnn = GetConnection()){
@@ -48,7 +48,7 @@ namespace ClickHouse.Test
         }
         
 
-        [TestMethod]
+        [Test]
         public void SelectIn()
         {
             using (var cnn = GetConnection())
@@ -62,7 +62,7 @@ namespace ClickHouse.Test
             }
 
         }
-        [TestMethod]
+        [Test]
         public void SelectFromArray()
         {
             using (var cnn = GetConnection())
@@ -105,7 +105,7 @@ namespace ClickHouse.Test
             } while (reader.NextResult());
         }
 
-        [TestMethod]
+        [Test]
         public void TestInsertNestedColumnBulk()
         {
             using (var cnn = GetConnection())
@@ -124,7 +124,8 @@ namespace ClickHouse.Test
                 cmd.ExecuteNonQuery();
             }
         }
-        [TestMethod]
+        
+        [Test]
         public void TestInsertArrayColumnBulk()
         {
             using (var cnn = GetConnection())
@@ -143,7 +144,7 @@ namespace ClickHouse.Test
                 cmd.ExecuteNonQuery();
             }
         }
-        [TestMethod]
+        [Test]
         public void TestInsertArrayColumnConst()
         {
             using (var cnn = GetConnection())
@@ -152,7 +153,7 @@ namespace ClickHouse.Test
                 cmd.ExecuteNonQuery();
             }
         }
-        [TestMethod]
+        [Test]
         public void TestInsertArrayColumnParam()
         {
             using (var cnn = GetConnection())
@@ -163,7 +164,7 @@ namespace ClickHouse.Test
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestPerfromance()
         {
             using (var cnn = GetConnection())
@@ -192,7 +193,7 @@ namespace ClickHouse.Test
                 
             }
         }
-        [TestMethod]
+        [Test]
         public void TestInsertFieldless()
         {
             using (var cnn = GetConnection())
@@ -201,7 +202,7 @@ namespace ClickHouse.Test
                 cnn.CreateCommand(sql).ExecuteNonQuery();
             }
         }
-        [TestMethod]
+        [Test]
         public void TestChecksumError()
         {
             using (var cnn = GetConnection())
@@ -211,7 +212,7 @@ namespace ClickHouse.Test
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestBigRequest() {
             var sql = @"select _f1,_f2,sum(_f3)AS _f3,sum(_f4)AS _f4,groupUniqArray(_f5)[1]AS _f5,sum(_f6)AS _f6,sum(_f7)AS _f7,sum(_f8)AS _f8,sum(_f9)AS _f9 FROM(SELECT intDiv((toDate('2019-03-22')-date)-1,7)AS _f1,734827 AS _f2,countMerge(total_views)AS _f3,0 AS _f4,NULL AS _f5,0 AS _f6,0 AS _f7,0 AS _f8,0 AS _f9 FROM page_view_aggregated_session WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-14))AND has(['755571'],publication_hid)GROUP BY publication_hid,intDiv((toDate('2019-03-22')-date)-1,7)UNION ALL SELECT intDiv((toDate('2019-03-22')-date)-1,7)AS _f1,734827 AS _f2,0 AS _f3,countMerge(total_views)AS _f4,publication_hid AS _f5,0 AS _f6,0 AS _f7,0 AS _f8,0 AS _f9 FROM page_view_aggregated_session WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-14))AND publication_hid IN(SELECT publication_hid FROM page_view_aggregated_session WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-7))AND has(['755571'],publication_hid)GROUP BY publication_hid ORDER BY countMerge(total_views)DESC limit 1)GROUP BY publication_hid,intDiv((toDate('2019-03-22')-date)-1,7)UNION ALL SELECT _f1,734827 AS _f2,0 AS _f3,0 AS _f4,NULL AS _f5,sum(pageViews)AS _f6,0 AS _f7,0 AS _f8,0 AS _f9 FROM(SELECT intDiv((toDate('2019-03-22')-date)-1,7)AS _f1,uniqCombinedMerge(views)AS pageViews FROM page_view_aggregated_page WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-14))AND has(['755571'],publication_hid)GROUP BY publication_hid,page,intDiv((toDate('2019-03-22')-date)-1,7))GROUP BY _f1 UNION ALL SELECT _f1,734827 AS _f2,0 AS _f3,0 AS _f4,NULL AS _f5,0 AS _f6,sumMerge(total_time)/countMerge(avg_time)AS _f7,0 AS _f8,0 AS _f9 FROM(SELECT intDiv((toDate('2019-03-22')-date)-1,7)AS _f1,sumMergeState(total_time)AS total_time,countMergeState(avg_time)AS avg_time FROM page_view_aggregated_exit WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-14))AND has(['755571'],publication_hid)GROUP BY publication_hid,intDiv((toDate('2019-03-22')-date)-1,7))GROUP BY _f1 UNION ALL SELECT _f1,734827 AS _f2,0 AS _f3,0 AS _f4,publication_hid AS _f5,0 AS _f6,0 AS _f7,sum(views)AS _f8,0 AS _f9 FROM(SELECT intDiv((toDate('2019-03-22')-date)-1,7)AS _f1,publication_hid,uniqCombinedMerge(views)as views,page FROM page_view_aggregated_page WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-14))AND publication_hid IN(SELECT publication_hid FROM page_view_aggregated_session WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-7))AND has(['755571'],publication_hid)GROUP BY publication_hid ORDER BY countMerge(total_views)DESC limit 1)GROUP BY publication_hid,intDiv((toDate('2019-03-22')-date)-1,7),page)GROUP BY publication_hid,_f1 UNION ALL SELECT intDiv((toDate('2019-03-22')-date)-1,7)AS _f1,734827 AS _f2,0 AS _f3,0 AS _f4,publication_hid AS _f5,0 AS _f6,0 AS _f7,0 AS _f8,sumMerge(total_time)/countMerge(avg_time)AS _f9 FROM page_view_aggregated_exit WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-14))AND publication_hid IN(SELECT publication_hid FROM page_view_aggregated_session WHERE(date<'2019-03-22')AND(date>=(toDate('2019-03-22')-7))AND has(['755571'],publication_hid)GROUP BY publication_hid ORDER BY countMerge(total_views)DESC limit 1)GROUP BY publication_hid,intDiv((toDate('2019-03-22')-date)-1,7))group by _f2,_f1 ORDER BY _f2,_f1
  UNION ALL 
@@ -230,7 +231,7 @@ select _f1,_f2,sum(_f3)AS _f3,sum(_f4)AS _f4,groupUniqArray(_f5)[1]AS _f5,sum(_f
             }
         }
 
-        [TestMethod]
+        [Test]
         public void TestBadReturnType() {
             using (var cnn = GetConnection("Compress=True;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=dev_fbo;User=andreya;Password=123")) {
                 var cmd = cnn.CreateCommand();
@@ -255,7 +256,7 @@ GROUP BY tracked_link_id";
                     });
             }
         }
-        [TestMethod]
+        [Test]
         public void TestGuidByteOrder()
         {
             using (var cnn = GetConnection("Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=dev_fbo;User=andreya;Password=123")) {
@@ -281,9 +282,40 @@ GROUP BY tracked_link_id";
                 using (var reader = cnn.CreateCommand("SELECT * FROM guid_test").ExecuteReader())
                     reader.ReadAll(r => g = r.GetValue(0));
                 Assert.IsNotNull(g);
-                Assert.IsInstanceOfType(g,typeof(Guid));
+                Assert.IsTrue(g is Guid);
                 Assert.AreEqual("dca0e161-9503-41a1-9de2-18528bfffe88", ((Guid) g).ToString("D"));
             }
         }
+        [Test]
+        public void TestInsertAfterInsert() {
+            using(var cnn = GetConnection())
+            {
+                var cmd = cnn.CreateCommand("INSERT INTO test (date,val)values @bulk;");
+                    cmd.Parameters.Add(
+                        new ClickHouseParameter {
+                            DbType = DbType.Object,
+                            ParameterName = "bulk",
+                            Value = new[] {new object[] {DateTime.Now, 1}, new object[] {DateTime.Now.AddHours(-1), 2},}
+                        }
+                    );
+                    cmd.ExecuteNonQuery();
+                    cmd.Parameters[0].Value = new[] {new object[] {DateTime.Now.AddHours(-2), 3}, new object[] {DateTime.Now.AddHours(-3), 4}};
+                    cmd.ExecuteNonQuery();
+                
+            }
+        }
+        [Test]
+        public void TestBadNullableType() {
+            using(var cnn = GetConnection())
+            {
+                var cmd = cnn.CreateCommand("select 1,1,toNullable(max(datetime)), dumpColumnStructure(toNullable(max(datetime))) from default.nullable_date_time");
+                using (var reader = cmd.ExecuteReader()) {
+                    reader.ReadAll(r => {
+                        Assert.True(r.IsDBNull(2));
+                    });
+                }
+            }
+        }
+        //
     }
 }

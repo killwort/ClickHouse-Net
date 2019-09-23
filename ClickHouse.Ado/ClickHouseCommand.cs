@@ -97,27 +97,35 @@ namespace ClickHouse.Ado
                 var schema = connection.Formatter.ReadSchema();
                 if (insertParser.oneParam != null)
                 {
-                    var table = ((IEnumerable)Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
-                    var colCount = table.First().Cast<object>().Count();
-                    if (colCount != schema.Columns.Count)
-                        throw new FormatException($"Column count in parameter table ({colCount}) doesn't match column count in schema ({schema.Columns.Count}).");
-                    var cl = new List<List<object>>(colCount);
-                    for (var i = 0; i < colCount; i++)
-                        cl.Add(new List<object>());
-                    var index = 0;
-                    cl = table.Aggregate(cl, (colList, row) =>
-                    {
-                        index = 0;
-                        foreach (var cval in row)
-                        {
-                            colList[index++].Add(cval);
+                    if (Parameters[insertParser.oneParam].Value is IBulkInsertEnumerable bulkInsertEnumerable) {
+                        var index = 0;
+                        foreach (var col in schema.Columns) {
+                            col.Type.ValuesFromConst(bulkInsertEnumerable.GetColumnData(index++, col.Name, col.Type.AsClickHouseType()));
                         }
-                        return colList;
-                    });
-                    index = 0;
-                    foreach (var col in schema.Columns)
-                    {
-                        col.Type.ValuesFromConst(cl[index++]);
+                    } else {
+                        var table = ((IEnumerable) Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
+                        var colCount = table.First().Cast<object>().Count();
+                        if (colCount != schema.Columns.Count)
+                            throw new FormatException($"Column count in parameter table ({colCount}) doesn't match column count in schema ({schema.Columns.Count}).");
+                        var cl = new List<List<object>>(colCount);
+                        for (var i = 0; i < colCount; i++)
+                            cl.Add(new List<object>());
+                        var index = 0;
+                        cl = table.Aggregate(
+                            cl,
+                            (colList, row) => {
+                                index = 0;
+                                foreach (var cval in row) {
+                                    colList[index++].Add(cval);
+                                }
+
+                                return colList;
+                            }
+                        );
+                        index = 0;
+                        foreach (var col in schema.Columns) {
+                            col.Type.ValuesFromConst(cl[index++]);
+                        }
                     }
                 }
                 else
