@@ -72,8 +72,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override void ValuesFromConst(IEnumerable objects)
         {
-            InnerType.ValuesFromConst(objects);
-            Nulls=new bool[InnerType.Rows];
+            InnerType.NullableValuesFromConst(objects);
+            Nulls = objects.Cast<object>().Select(x => x == null).ToArray();
             //Data = objects.Cast<DateTime>().ToArray();
         }
 

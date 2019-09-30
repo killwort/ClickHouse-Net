@@ -106,5 +106,12 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         {
             Data = objects.Cast<Guid>().ToArray();
         }
+
+        public override void NullableValuesFromConst(IEnumerable objects)
+        {
+            Data = objects.Cast<Guid?>()
+                .Select(x => x ?? Guid.Empty)
+                .ToArray();
+        }
     }
 }

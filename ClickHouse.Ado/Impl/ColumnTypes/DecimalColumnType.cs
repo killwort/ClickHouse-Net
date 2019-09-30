@@ -89,6 +89,14 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
 
         public override long IntValue(int currentRow) => (long) Data[currentRow];
 
-        public override void ValuesFromConst(IEnumerable objects) => Data = objects.Cast<decimal>().ToArray();
+        public override void ValuesFromConst(IEnumerable objects)
+            => Data = objects.Cast<decimal>().ToArray();
+
+        public override void NullableValuesFromConst(IEnumerable objects)
+        {
+            Data = objects.Cast<decimal?>()
+                .Select(x => x ?? 0m)
+                .ToArray();
+        }
     }
 }

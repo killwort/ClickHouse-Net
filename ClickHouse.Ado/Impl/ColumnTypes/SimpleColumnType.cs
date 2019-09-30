@@ -14,6 +14,7 @@ using Buffer = System.Buffer;
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
     internal class SimpleColumnType<T> : ColumnType
+        where T : struct
     {
         public SimpleColumnType()
         {
@@ -114,6 +115,13 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override void ValuesFromConst(IEnumerable objects)
         {
             Data = objects.Cast<T>().ToArray();
+        }
+
+        public override void NullableValuesFromConst(IEnumerable objects)
+        {
+            Data = objects.Cast<T?>()
+                .Select(x => x ?? (T)Activator.CreateInstance(typeof(T)))
+                .ToArray();
         }
     }
 }

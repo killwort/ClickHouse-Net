@@ -29,5 +29,19 @@ namespace ClickHouse.Test.ClickHouseConnectionSettingsTests
             Assert.AreEqual(expectedSettings.User, actualSettings.User);
             Assert.AreEqual(expectedSettings.Password, actualSettings.Password);
         }
+
+        [TestMethod]
+        public void ChangePropertyValue()
+        {
+            const string connectionString = "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=clickhouse;Port=9000;User=default;Password=;SocketTimeout=600000;Database=Test;";
+            var settings = new ClickHouseConnectionSettings(connectionString)
+            {
+                Database = "New"
+            };
+
+            Assert.AreEqual(
+                "Async=\"False\";BufferSize=\"4096\";ApacheBufferSize=\"0\";SocketTimeout=\"600000\";ConnectionTimeout=\"1000\";DataTransferTimeout=\"1000\";KeepAliveTimeout=\"1000\";TimeToLiveMillis=\"0\";DefaultMaxPerRoute=\"0\";MaxTotal=\"0\";Host=\"clickhouse\";Port=\"9000\";MaxCompressBufferSize=\"0\";MaxParallelReplicas=\"0\";Priority=\"0\";Database=\"New\";Compress=\"True\";Compressor=\"lz4\";CheckCompressedHash=\"False\";Decompress=\"False\";Extremes=\"False\";MaxThreads=\"0\";MaxExecutionTime=\"0\";MaxBlockSize=\"0\";MaxRowsToGroupBy=\"0\";User=\"default\";Password=\"\";DistributedAggregationMemoryEfficient=\"False\";MaxBytesBeforeExternalGroupBy=\"0\";MaxBytesBeforeExternalSort=\"0\";",
+                settings.ToString());
+        }
     }
 }
