@@ -5,6 +5,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
     using System.Data;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
     using ATG.Insert;
     using Buffer = System.Buffer;
 
@@ -51,9 +52,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             switch (val.TypeHint)
             {
                 case Parser.ConstType.String:
-                    Data = new[]
-                           {
-                               new Guid(val.StringValue)
+                    var match = Regex.Match(val.StringValue, @"'(?<value>[0-9A-F]{8}([-][0-9A-F]{4}){3}[-][0-9A-F]{12})'", RegexOptions.IgnoreCase);
+                    if (match.Success)
+                        Data = new[]
+                               {
+                               new Guid(match.Groups["value"].Value)
                            };
                     break;
                 default:
