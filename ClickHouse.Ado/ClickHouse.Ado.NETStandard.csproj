@@ -6,7 +6,7 @@
     <VersionPrefix>1.1.19</VersionPrefix>
     <Authors>Andrey Zakharov</Authors>
 	
-    <TargetFrameworks>netstandard1.5;net45</TargetFrameworks>
+    <TargetFrameworks>net461;netstandard1.5</TargetFrameworks>
 <!--    <TargetFramework>net451</TargetFramework>-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>ClickHouse.Ado</AssemblyName>
@@ -31,23 +31,22 @@ for /d %%D in ("$(SolutionDir)ClickHouse.Ado\Impl\ATG\*.*") DO $(SolutionDir)Coc
 del /q $(SolutionDir).lock
 :end</PreBuildEvent>
     <Version>1.1.19</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net20' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net20' ">
     <Reference Include="System.Data" />
     <Reference Include="System" />
     <PackageReference Include="lz4net" Version="1.0.15.93" />
   </ItemGroup>
   
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net20' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net20' ">
    	<PackageTargetFallback>$(PackageTargetFallback);net4-client</PackageTargetFallback>	 
   </PropertyGroup>
   
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net461' ">
     <DefineConstants>$(DefineConstants);FRAMEWORK451</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net461' ">
     <DefineConstants>$(DefineConstants);FRAMEWORK45</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">

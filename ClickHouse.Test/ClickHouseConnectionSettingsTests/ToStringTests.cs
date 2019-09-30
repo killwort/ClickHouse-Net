@@ -1,12 +1,17 @@
-﻿using ClickHouse.Ado;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ClickHouse.Ado;
+using NUnit.Framework;
 
 namespace ClickHouse.Test.ClickHouseConnectionSettingsTests
 {
-    [TestClass]
+    [TestFixture]
     public class ToStringTests
     {
-        [TestMethod]
+        [Test]
         public void ShouldConvertIntoConnectionStringAndBack()
         {
             const string connectionString = "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=clickhouse;Port=9000;User=default;Password=;SocketTimeout=600000;Database=Test;";

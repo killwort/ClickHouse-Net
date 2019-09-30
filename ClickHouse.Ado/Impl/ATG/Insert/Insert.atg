@@ -15,7 +15,7 @@ IGNORECASE
 CHARACTERS
 letter='A'..'Z'+'a'..'z'+'_'.
 digit='0'..'9'.
-nonEscaped=ANY-"'"-"\\".
+nonEscaped=ANY-"'"-"\\"-'"'.
 TOKENS
 ident=[letter{letter|digit}"."]letter{letter|digit}.
 identBackquoted="`" {nonEscaped|"\\\\"|"\\'"} "`".
