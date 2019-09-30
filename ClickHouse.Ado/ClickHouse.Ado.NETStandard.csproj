@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
     <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
-    <VersionPrefix>1.1.19</VersionPrefix>
+    <VersionPrefix>1.1.20</VersionPrefix>
     <Authors>Andrey Zakharov</Authors>
 	
     <TargetFrameworks>net461;netstandard1.5</TargetFrameworks>
@@ -30,7 +30,7 @@ echo &gt; $(SolutionDir).lock
 for /d %%D in ("$(SolutionDir)ClickHouse.Ado\Impl\ATG\*.*") DO $(SolutionDir)Coco.exe %%D\%%~nD.atg -o %%D -frames %%D\..\
 del /q $(SolutionDir).lock
 :end</PreBuildEvent>
-    <Version>1.1.19</Version>
+    <Version>1.1.20</Version>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net461' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net20' ">

@@ -30,7 +30,7 @@ namespace ClickHouse.Test.ClickHouseConnectionSettingsTests
             Assert.AreEqual(expectedSettings.Password, actualSettings.Password);
         }
 
-        [TestMethod]
+        [Test]
         public void ChangePropertyValue()
         {
             const string connectionString = "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=clickhouse;Port=9000;User=default;Password=;SocketTimeout=600000;Database=Test;";
