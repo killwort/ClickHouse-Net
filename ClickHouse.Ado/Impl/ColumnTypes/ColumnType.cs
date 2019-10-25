@@ -71,7 +71,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
                             throw new ClickHouseException($"Invalid Decimal bit-length {m.Groups["dlen"].Value}");
                     }
                 else
-                    len = uint.Parse(m.Groups["len"].Value);
+                    len = uint.Parse(m.Groups["len"].Value.Length.ToString());
                 return new DecimalColumnType(len,uint.Parse(m.Groups["prec"].Value));
             }
             m = NestedRegex.Match(name);
