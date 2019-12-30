@@ -19,7 +19,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         public override bool IsNullable => true;
         public override int Rows => InnerType.Rows;
-        internal override Type CLRType => InnerType.CLRType.IsByRef ? InnerType.CLRType : typeof(Nullable<>).MakeGenericType(InnerType.CLRType);
+        internal override Type CLRType => InnerType.CLRType.IsByRef
+            ? InnerType.CLRType
+            : InnerType.CLRType.Equals(typeof(string)) ? InnerType.CLRType : typeof(Nullable<>).MakeGenericType(InnerType.CLRType);
 
         public override string AsClickHouseType()
         {

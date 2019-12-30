@@ -9,6 +9,17 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 {
     internal class TupleColumnType : ColumnType
     {
+        private static readonly Dictionary<int, Type> Types = new Dictionary<int, Type>
+        {
+            { 1, typeof(Tuple<>) },
+            { 2, typeof(Tuple<,>) },
+            { 3, typeof(Tuple<,,>) },
+            { 4, typeof(Tuple<,,,>) },
+            { 5, typeof(Tuple<,,,,>) },
+            { 6, typeof(Tuple<,,,,,>) },
+            { 7, typeof(Tuple<,,,,,,>) },
+            { 8, typeof(Tuple<,,,,,,,>) }
+        };
 
         public TupleColumnType(IEnumerable<ColumnType> values)
         {
@@ -23,7 +34,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         }
 
         public override int Rows => Columns.First().Rows;
-        internal override Type CLRType => typeof(Tuple<>).MakeGenericType(Columns.Select(x => x.CLRType).ToArray());
+        internal override Type CLRType => Types[Columns.Length].MakeGenericType(Columns.Select(x => x.CLRType).ToArray());
 
 
         public override string AsClickHouseType()
