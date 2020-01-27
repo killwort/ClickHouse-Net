@@ -11,11 +11,25 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 {
     internal abstract class ColumnType
     {
+        private class StringEqualityComparer : IEqualityComparer<string>
+        {
+           
+            public bool Equals(string x, string y)
+            {
+                return string.Equals(x, y, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public int GetHashCode(string obj)
+            {
+                return  obj?.ToLowerInvariant()?.GetHashCode()??0;
+            }
+        }
+
         internal abstract void Read(ProtocolFormatter formatter, int rows);
         public virtual bool IsNullable => false;
         public abstract int Rows { get; }
 
-        private static Dictionary<string, Type> Types = new Dictionary<string, Type>
+        private static Dictionary<string, Type> Types = new Dictionary<string, Type>(new StringEqualityComparer())
         {
             {"UInt8", typeof(SimpleColumnType<byte>)},
             {"UInt16", typeof(SimpleColumnType<UInt16>)},
