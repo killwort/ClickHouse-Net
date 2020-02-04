@@ -15,7 +15,46 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public virtual bool IsNullable => false;
         public abstract int Rows { get; }
 
-        private static Dictionary<string, Type> Types = new Dictionary<string, Type>
+        private class CaseInsensitiveComparer : IEqualityComparer<string> {
+            public bool Equals(string x, string y) => string.Equals(x, y, StringComparison.OrdinalIgnoreCase);
+
+            public int GetHashCode(string obj) => obj.ToLowerInvariant().GetHashCode();
+        }
+
+        private static readonly Dictionary<string, string> CaseInsensitiveTypeAliases = new Dictionary<string, string>(new CaseInsensitiveComparer()) {
+            //SQL-compatibility aliases.
+            {"LONGBLOB", "String"},
+            {"MEDIUMBLOB", "String"},
+            {"TINYBLOB", "String"},
+            {"BIGINT", "Int64"},
+            {"SMALLINT", "Int16"},
+            {"TIMESTAMP", "DateTime"},
+            {"INTEGER", "Int32"},
+            {"INT", "Int32"},
+            {"DOUBLE", "Float64"},
+            {"MEDIUMTEXT", "String"},
+            {"TINYINT", "Int8"},
+            {"DEC", "Decimal"},
+            {"BINARY", "FixedString"},
+            {"FLOAT", "Float32"},
+            {"CHAR", "String"},
+            {"VARCHAR", "String"},
+            {"TEXT", "String"},
+            {"TINYTEXT", "String"},
+            {"LONGTEXT", "String"},
+            {"BLOB", "String"},
+            
+            //Clickhouse-specific aliases
+            {"Decimal","Decimal"},
+            {"Decimal64","Decimal64"},
+            {"Decimal32","Decimal32"},
+            {"Decimal128","Decimal128"},
+            {"Date","Date"},
+            {"DateTime","DateTime"}
+
+        };
+
+        private static readonly Dictionary<string, Type> Types = new Dictionary<string, Type>
         {
             {"UInt8", typeof(SimpleColumnType<byte>)},
             {"UInt16", typeof(SimpleColumnType<UInt16>)},
@@ -43,11 +82,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         private static readonly Regex NestedRegex = new Regex(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
         private static readonly Regex DecimalRegex = new Regex(@"^Decimal(((?<dlen>(32|64|128))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public static ColumnType Create(string name)
-        {
+        public static ColumnType Create(string name) {
+            if (CaseInsensitiveTypeAliases.TryGetValue(name, out var alias)) name = alias;
             if (Types.ContainsKey(name))
                 return (ColumnType)Activator.CreateInstance(Types[name]);
-
             var m = FixedStringRegex.Match(name);
             if (m.Success)
             {

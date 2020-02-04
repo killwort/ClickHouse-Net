@@ -12,7 +12,7 @@ namespace ClickHouse.Test
     [TestFixture]
     public class SimpleTests
     {
-        private ClickHouseConnection GetConnection(string cstr= "Compress=True;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=default;User=andreya;Password=123")
+        private ClickHouseConnection GetConnection(string cstr= "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=file-server;Port=9000;Database=default;User=test;Password=123")
         {
             var settings = new ClickHouseConnectionSettings(cstr);
             var cnn = new ClickHouseConnection(settings);
@@ -259,7 +259,7 @@ GROUP BY tracked_link_id";
         [Test]
         public void TestGuidByteOrder()
         {
-            using (var cnn = GetConnection("Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=dev_fbo;User=andreya;Password=123")) {
+            using (var cnn = GetConnection("Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=file-server;Port=9000;Database=default;User=andreya;Password=123")) {
 
                 
                 try {
@@ -313,6 +313,22 @@ GROUP BY tracked_link_id";
                     reader.ReadAll(r => {
                         Assert.True(r.IsDBNull(2));
                     });
+                }
+            }
+        }
+        [Test]
+        public void TestDateTimeInViewsV20() {
+            using(var cnn = GetConnection())
+            {
+                var cmd = cnn.CreateCommand("select * from test_dt20_view");
+                using (var reader = cmd.ExecuteReader()) {
+                    reader.ReadAll(
+                        r => {
+                            var date=r.GetDateTime(0);
+                            var dateTime = r.GetDateTime(1);
+                            var val = r.GetString(2);
+                            Console.WriteLine($"{date} {dateTime} {val}");
+                        });
                 }
             }
         }
