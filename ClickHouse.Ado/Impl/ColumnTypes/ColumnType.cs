@@ -50,7 +50,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             {"Decimal32","Decimal32"},
             {"Decimal128","Decimal128"},
             {"Date","Date"},
-            {"DateTime","DateTime"}
+            {"DateTime","DateTime"},
+            {"DateTime64", $"DateTime64({DateTime64ColumnType.DefaultPrecision})"}
 
         };
 
@@ -70,6 +71,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             {"Double", typeof(SimpleColumnType<double>)},
             {"Date", typeof(DateColumnType)},
             {"DateTime", typeof(DateTimeColumnType)},
+            {$"DateTime64({DateTime64ColumnType.DefaultPrecision})", typeof(DateTime64ColumnType)},
             {"String", typeof(StringColumnType)},
             {"Null", typeof(NullColumnType)},
             {GuidColumnType.UuidColumnTypeName, typeof(GuidColumnType)},

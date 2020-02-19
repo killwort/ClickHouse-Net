@@ -16,7 +16,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 {
     internal class DateColumnType : ColumnType
     {
-        private static readonly DateTime UnixTimeBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        protected static readonly DateTime UnixTimeBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public DateColumnType()
         {
