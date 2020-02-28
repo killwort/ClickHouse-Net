@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -31,13 +31,15 @@ namespace ClickHouse.Ado.Impl
         private Compressor _compressor;
 
         private readonly Func<bool> _poll;
+        private readonly int _socketTimeout;
         public ServerInfo ServerInfo { get; set; }
         public ClientInfo ClientInfo { get; private set; }
 
-        internal ProtocolFormatter(Stream baseStream, ClientInfo clientInfo, Func<bool> poll)
+        internal ProtocolFormatter(Stream baseStream, ClientInfo clientInfo, Func<bool> poll, int socketTimeout)
         {
             _baseStream = baseStream;
             _poll = poll;
+            _socketTimeout = socketTimeout;
             _ioStream = _baseStream;
             /*reader = new BinaryReader(_baseStream,Encoding.UTF8);
             writer = new BinaryWriter(_baseStream);*/
@@ -131,20 +133,34 @@ namespace ClickHouse.Ado.Impl
             int read = 0;
             int cur = 0;
             var networkStream = _ioStream as NetworkStream ?? (_ioStream as UnclosableStream)?.BaseStream as NetworkStream;
+            long waitTimeStamp = 0;
 
             do
             {
                 cur = _ioStream.Read(bytes, read, i - read);
                 read += cur;
+                
                 if (cur == 0)
                 {
-                    // check for DataAvailable forces an exception if socket is closed
-                    if (networkStream != null && networkStream.DataAvailable)
-                        continue;
                     // when we read from non-NetworkStream there's no point in waiting for more data
                     if (networkStream == null)
                         throw new EndOfStreamException();
+                    // check for DataAvailable forces an exception if socket is closed
+                    if(networkStream.DataAvailable)
+                        continue;
+                    
+                    if(waitTimeStamp == 0)
+                        waitTimeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                    
+                    // check for socket timeout if we are expecting data, but somehow server is dead or stopped sending data
+                    if(DateTimeOffset.Now.ToUnixTimeMilliseconds() - _socketTimeout > waitTimeStamp)
+                        throw new TimeoutException("Socket timeout while waiting for data");
+                    
                     Thread.Sleep(1);
+                }
+                else
+                {
+                    waitTimeStamp = 0;
                 }
             } while (read < i);
 

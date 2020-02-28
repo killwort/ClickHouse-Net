@@ -113,7 +113,8 @@ namespace ClickHouse.Ado
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(_stream,ci, ()=>_tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead));
+            Formatter = new ProtocolFormatter(_stream,ci, ()=>_tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), 
+                ConnectionSettings.SocketTimeout);
             Formatter.Handshake(ConnectionSettings);
         }
 
