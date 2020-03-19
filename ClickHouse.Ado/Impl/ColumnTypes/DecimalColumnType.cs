@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 
@@ -41,32 +42,25 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                 } else if (_byteLength == 4) {
                     Data[i] = BitConverter.ToInt64(bytes, i * _byteLength) / _exponent;
                 } else {
-                    var c = (byte) ((bytes[(1 + i) * _byteLength - 1] & 0x80) != 0 ? 0xff : 0);
-                    decimal current = 0;
-                    for (var k = 0; k < _byteLength; k++) {
-                        current *= 0x100;
-                        current += c ^ bytes[(1 + i) * _byteLength - k - 1];
-                    }
-
-                    Data[i] = (c != 0 ? -(current + 1) : current) / _exponent;
+                    var premultiplied = new BigInteger(bytes.Skip(i * _byteLength).Take(_byteLength).ToArray());
+                    var result = ((decimal) BigInteger.DivRem(premultiplied, new BigInteger(_exponent), out var remainder));
+                    result += ((decimal) remainder) / _exponent;
+                    Data[i] = result;
                 }
         }
 
         public override void Write(ProtocolFormatter formatter, int rows) {
             Debug.Assert(Rows == rows, "Row count mismatch!");
             foreach (var d in Data) {
-                var premultiplied = d * _exponent;
+                var premultiplied = new BigInteger(d * _exponent);
                 if (_byteLength == 4) {
                     formatter.WriteBytes(BitConverter.GetBytes((int) premultiplied));
                 } else if (_byteLength == 8) {
                     formatter.WriteBytes(BitConverter.GetBytes((long) premultiplied));
                 } else {
-                    var c = (byte) (premultiplied >= 0 ? 0 : 0xff);
-                    if (c != 0) premultiplied = -premultiplied - 1;
+                    var bytes = premultiplied.ToByteArray();
                     for (var i = 0; i < _byteLength; i++) {
-                        var next = (byte) ((byte) (Math.Truncate(premultiplied) % 0xff) ^ c);
-                        premultiplied = Math.Truncate(premultiplied / 0x100);
-                        formatter.WriteByte(next);
+                        formatter.WriteByte(i < bytes.Length ? bytes[i] : (byte) 0);
                     }
                 }
             }
