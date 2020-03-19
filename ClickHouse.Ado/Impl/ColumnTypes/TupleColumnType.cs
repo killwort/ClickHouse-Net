@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
@@ -26,9 +27,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         internal override Type CLRType => typeof(Tuple<>).MakeGenericType(Columns.Select(x => x.CLRType).ToArray());
 
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
-            return $"Tuple({string.Join(",", Columns.Select(x => x.AsClickHouseType()))})";
+            return $"Tuple({string.Join(",", Columns.Select(x => x.AsClickHouseType(usageIntent)))})";
         }
 
         public override void Write(ProtocolFormatter formatter, int rows)

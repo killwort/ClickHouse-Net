@@ -50,7 +50,7 @@ namespace ClickHouse.Ado
         {
             if (_currentBlock == null)
                 throw new InvalidOperationException("Trying to read beyond end of stream.");
-            return _currentBlock.Columns[i].Type.AsClickHouseType();
+            return _currentBlock.Columns[i].Type.AsClickHouseType(ClickHouseTypeUsageIntent.Generic);
         }
 
         public Type GetFieldType(int i)

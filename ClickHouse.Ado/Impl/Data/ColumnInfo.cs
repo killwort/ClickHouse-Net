@@ -2,7 +2,7 @@
 
 namespace ClickHouse.Ado.Impl.Data
 {
-        internal class ColumnInfo
+    internal class ColumnInfo
         {
             public string Name { get; set; }
             public ColumnType Type { get; set; }
@@ -10,7 +10,7 @@ namespace ClickHouse.Ado.Impl.Data
             internal void Write(ProtocolFormatter formatter, int rows)
             {
                 formatter.WriteString(Name);
-                formatter.WriteString(Type.AsClickHouseType());
+                formatter.WriteString(Type.AsClickHouseType(ClickHouseTypeUsageIntent.ColumnInfo));
 
                 if (rows > 0)
                     Type.Write(formatter, rows);

@@ -13,7 +13,7 @@ namespace ClickHouse.Ado.Impl.Data
             ClientName = ProtocolCaps.ClientName;
             ClientVersionMajor = 1;
             ClientVersionMinor = 1;
-            ClientRevision = 54140;
+            ClientRevision = 54411;
         }
 
         internal void Write(ProtocolFormatter formatter)
@@ -41,6 +41,8 @@ namespace ClickHouse.Ado.Impl.Data
             }
             if (formatter.ServerInfo.Build > ProtocolCaps.DbmsMinRevisionWithQuotaKeyInClientInfo)
                 formatter.WriteString(QuotaKey);
+            if (formatter.ServerInfo.Build > ProtocolCaps.DbmsMinRevisionWithServerVersionPatch)
+                formatter.WriteUInt(ClientRevision);
         }
         public QueryKind QueryKind { get; set; }
 

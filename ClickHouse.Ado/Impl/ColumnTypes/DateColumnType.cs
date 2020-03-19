@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
@@ -46,7 +47,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         internal override Type CLRType => typeof(DateTime);
 
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
             return "Date";
         }

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
@@ -31,7 +32,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override int Rows => Data?.Length ?? 0;
         internal override Type CLRType => typeof(string);
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
             return "String";
         }

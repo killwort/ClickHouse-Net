@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
@@ -42,9 +43,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             
         }
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
-            return $"Array({InnerType.AsClickHouseType()})";
+            return $"Array({InnerType.AsClickHouseType(usageIntent)})";
         }
 
         public override void Write(ProtocolFormatter formatter, int rows)

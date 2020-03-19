@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
@@ -21,9 +22,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override int Rows => InnerType.Rows;
         internal override Type CLRType => InnerType.CLRType.IsByRef ? InnerType.CLRType : typeof(Nullable<>).MakeGenericType(InnerType.CLRType);
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
-            return $"Nullable({InnerType.AsClickHouseType()})";
+            return $"Nullable({InnerType.AsClickHouseType(usageIntent)})";
         }
 
         public override void Write(ProtocolFormatter formatter, int rows)

@@ -1,3 +1,5 @@
+using ClickHouse.Ado.Impl.Data;
+
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
     using System;
@@ -64,7 +66,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             }
         }
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
             return UuidColumnTypeName;
         }

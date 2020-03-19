@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
@@ -45,7 +46,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override int Rows => Data?.Length ?? 0;
         internal override Type CLRType => typeof(int);
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
             return $"Enum{BaseSize}({string.Join(",", Values.Select(x => $"{(x.Item1)}={x.Item2}"))})";
         }

@@ -100,7 +100,7 @@ namespace ClickHouse.Ado
                     if (Parameters[insertParser.oneParam].Value is IBulkInsertEnumerable bulkInsertEnumerable) {
                         var index = 0;
                         foreach (var col in schema.Columns) {
-                            col.Type.ValuesFromConst(bulkInsertEnumerable.GetColumnData(index++, col.Name, col.Type.AsClickHouseType()));
+                            col.Type.ValuesFromConst(bulkInsertEnumerable.GetColumnData(index++, col.Name, col.Type.AsClickHouseType(ClickHouseTypeUsageIntent.Generic)));
                         }
                     } else {
                         var table = ((IEnumerable) Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();

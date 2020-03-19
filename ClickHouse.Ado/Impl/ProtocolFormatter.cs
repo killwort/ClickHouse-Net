@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -282,16 +282,22 @@ namespace ClickHouse.Ado.Impl
                 var serverMajor = ReadUInt();
                 var serverMinor = ReadUInt();
                 var serverBuild = ReadUInt();
-                string serverTz = null;
+                string serverTz = null, serverDn=null;
+                ulong serverPatch = 0;
                 if (serverBuild >= ProtocolCaps.DbmsMinRevisionWithServerTimezone)
                     serverTz = ReadString();
-                ServerInfo = new ServerInfo
-                {
+                if (serverBuild >= ProtocolCaps.DbmsMinRevisionWithServerDisplayName)
+                    serverDn = ReadString();
+                if (serverBuild >= ProtocolCaps.DbmsMinRevisionWithServerVersionPatch)
+                    serverPatch = (uint)ReadUInt();
+                ServerInfo = new ServerInfo {
                     Build = serverBuild,
                     Major = serverMajor,
                     Minor = serverMinor,
                     Name = serverName,
-                    Timezone = serverTz
+                    Timezone = serverTz,
+                    Patch = (long) serverPatch,
+                    DisplayName = serverDn
                 };
             }
             else if (serverHello == (int)ServerMessageType.Exception)
@@ -347,7 +353,13 @@ namespace ClickHouse.Ado.Impl
         internal Block ReadSchema()
         {
             Response schema = new Response();
-            ReadPacket(schema);
+            if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithColumnDefaultsMetadata) {
+                ReadPacket(schema);
+                if(schema.Type==ServerMessageType.TableColumns)
+                    ReadPacket(schema);
+            }
+            else
+                ReadPacket(schema);
             return schema.Blocks.First();
         }
 
@@ -389,6 +401,7 @@ namespace ClickHouse.Ado.Impl
         internal bool ReadPacket(Response rv)
         {
             var type = (ServerMessageType)ReadUInt();
+            rv.Type = type;
             switch (type)
             {
                 case ServerMessageType.Data:
@@ -419,6 +432,11 @@ namespace ClickHouse.Ado.Impl
                         var calcRowsNoLimit = ReadUInt();//bool
                         return true;
                     }
+                case ServerMessageType.TableColumns: {
+                    var empty= ReadString();
+                    var columns = ReadString();
+                }
+                    return true;
                 case ServerMessageType.Pong:
                     return true;
                 case ServerMessageType.EndOfStream:

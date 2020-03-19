@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Diagnostics;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
@@ -22,7 +23,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             
         }
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
             return "Null";
         }

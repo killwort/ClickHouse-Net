@@ -3,8 +3,8 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl
 {
-    internal class Response
-    {
+    internal class Response {
+        public ServerMessageType Type;
         public List<Block> Blocks { get; private set; } = new List<Block>();
         public void AddBlock(Block block)
         {

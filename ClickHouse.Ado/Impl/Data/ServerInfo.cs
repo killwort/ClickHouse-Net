@@ -2,7 +2,7 @@
 {
     public class ServerInfo
     {
-        public long Major, Minor, Build;
-        public string Name,Timezone;
+        public long Major, Minor, Build, Patch;
+        public string Name,Timezone, DisplayName;
     }
 }

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
@@ -42,7 +43,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         public override int Rows => Data?.Length ?? 0;
         internal override Type CLRType => typeof(T);
 
-        public override string AsClickHouseType()
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
         {
             if (typeof(T) == typeof(double))
                 return "Float64";

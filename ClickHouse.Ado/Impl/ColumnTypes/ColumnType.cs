@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes
 {
@@ -70,6 +71,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             {"Double", typeof(SimpleColumnType<double>)},
             {"Date", typeof(DateColumnType)},
             {"DateTime", typeof(DateTimeColumnType)},
+            {"DateTime64", typeof(DateTime64ColumnType)},
             {"String", typeof(StringColumnType)},
             {"Null", typeof(NullColumnType)},
             {GuidColumnType.UuidColumnTypeName, typeof(GuidColumnType)},
@@ -81,6 +83,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         private static readonly Regex FixedStringRegex = new Regex(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex NestedRegex = new Regex(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
         private static readonly Regex DecimalRegex = new Regex(@"^Decimal(((?<dlen>(32|64|128))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex DateTime64Regex = new Regex(@"^DateTime64\s*\(\s*(?<prec>\d+)\s*(,\s*'(?<tz>([^']|(\\'))*)'\s*)?\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         public static ColumnType Create(string name) {
             if (CaseInsensitiveTypeAliases.TryGetValue(name, out var alias)) name = alias;
@@ -111,6 +114,11 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
                 else
                     len = uint.Parse(m.Groups["len"].Value);
                 return new DecimalColumnType(len,uint.Parse(m.Groups["prec"].Value));
+            }
+
+            m = DateTime64Regex.Match(name);
+            if (m.Success) {
+                return new DateTime64ColumnType(int.Parse(m.Groups["prec"].Value), ProtocolFormatter.UnescapeStringValue(m.Groups["tz"].Value));
             }
             m = NestedRegex.Match(name);
             if (m.Success)
@@ -154,7 +162,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
 
         //public abstract void ValueFromConst(string value, Parser.ConstType typeHint);
         public abstract void ValueFromConst(Parser.ValueType val);
-        public abstract string AsClickHouseType();
+        public abstract string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent);
         public abstract void Write(ProtocolFormatter formatter, int rows);
 
         public abstract void ValueFromParam(ClickHouseParameter parameter);

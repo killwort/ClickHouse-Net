@@ -57,8 +57,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClickHouseConnectionSettingsTests\ToStringTests.cs" />
+    <Compile Include="ConnectionHandler.cs" />
     <Compile Include="SimpleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestDateTime64Support.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

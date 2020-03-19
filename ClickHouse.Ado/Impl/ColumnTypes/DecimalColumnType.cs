@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes {
     internal class DecimalColumnType : ColumnType {
@@ -81,7 +82,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                 throw new NotSupportedException();
         }
 
-        public override string AsClickHouseType() => $"Decimal({_length}, {_precision})";
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) => $"Decimal({_length}, {_precision})";
 
         public override void ValueFromParam(ClickHouseParameter parameter) => Data = new[] {(decimal) Convert.ChangeType(parameter.Value, typeof(decimal))};
 

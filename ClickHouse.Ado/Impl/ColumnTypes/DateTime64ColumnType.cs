@@ -1,9 +1,5 @@
-﻿#pragma warning disable CS0618
-
 using System;
-#if !NETCOREAPP11
 using System.Data;
-#endif
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -12,43 +8,49 @@ using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes
-{
-    internal class DateTimeColumnType : DateColumnType
+namespace ClickHouse.Ado.Impl.ColumnTypes {
+    internal class DateTime64ColumnType : DateColumnType
     {
+        private readonly int _precision;
+        private readonly string _tz;
         private static readonly DateTime UnixTimeBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        public DateTimeColumnType()
-        {
+        public DateTime64ColumnType(int precision, string tz) {
+            _precision = precision;
+            _tz = tz;
         }
 
-        public DateTimeColumnType(DateTime[] data) : base(data)
+        public DateTime64ColumnType(DateTime[] data) : base(data)
         {
         }
 
         internal override void Read(ProtocolFormatter formatter, int rows)
         {
 #if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
-            var itemSize = sizeof(uint);
+            var itemSize = sizeof(ulong);
 #else
-            var itemSize = Marshal.SizeOf<uint>();
+            var itemSize = Marshal.SizeOf<ulong>();
 #endif
             var bytes = formatter.ReadBytes(itemSize * rows);
-            var xdata = new uint[rows];
+            var xdata = new ulong[rows];
             Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);
-            Data = xdata.Select(x => UnixTimeBase.AddSeconds(x)).ToArray();
+            var divisor = Math.Pow(10, -_precision);
+            Data = xdata.Select(x => UnixTimeBase.AddSeconds(x * divisor)).ToArray();
         }
 
         public override void Write(ProtocolFormatter formatter, int rows)
         {
             Debug.Assert(Rows == rows, "Row count mismatch!");
+            var multiplier = Math.Pow(10, _precision);
             foreach (var d in Data)
-                formatter.WriteBytes(BitConverter.GetBytes((uint)((d - UnixTimeBase).TotalSeconds)));
+                formatter.WriteBytes(BitConverter.GetBytes((ulong) ((d - UnixTimeBase).TotalSeconds * multiplier)));
         }
 
-        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
-        {
-            return "DateTime";
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) {
+            if (string.IsNullOrEmpty(_tz) || usageIntent == ClickHouseTypeUsageIntent.ColumnInfo)
+                return $"DateTime64({_precision})";
+            else
+                return $"DateTime64({_precision}, '{ProtocolFormatter.EscapeStringValue(_tz)}')";
         }
 
         public override int Rows => Data?.Length ?? 0;
@@ -64,9 +66,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
         {
             if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime
 #if !NETCOREAPP11
-                || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
+                                                || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
 #endif
-                )
+            )
                 Data = new[] { (DateTime)Convert.ChangeType(parameter.Value, typeof(DateTime)) };
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to DateTime.");
         }
