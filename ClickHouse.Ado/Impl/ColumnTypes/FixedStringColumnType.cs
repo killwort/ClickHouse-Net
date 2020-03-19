@@ -28,7 +28,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         public override void Write(ProtocolFormatter formatter, int rows) {
             Debug.Assert(Rows == rows, "Row count mismatch!");
             foreach (var d in Data) {
-                var bytes = Encoding.UTF8.GetBytes(d);
+                var bytes = Encoding.UTF8.GetBytes(d ?? string.Empty);
                 var left = Length - bytes.Length;
                 if (left <= 0) {
                     formatter.WriteBytes(bytes.Take((int) Length).ToArray());

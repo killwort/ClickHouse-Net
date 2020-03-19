@@ -61,6 +61,7 @@
     <Compile Include="SimpleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestDateTime64Support.cs" />
+    <Compile Include="Test_82_NullableFixedString.cs" />
     <Compile Include="Test_84_DecimalSupport.cs" />
   </ItemGroup>
   <ItemGroup>
