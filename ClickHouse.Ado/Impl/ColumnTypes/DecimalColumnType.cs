@@ -61,7 +61,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                 } else if (_byteLength == 8) {
                     formatter.WriteBytes(BitConverter.GetBytes((long) premultiplied));
                 } else {
-                    var c = (byte) (premultiplied > 0 ? 0 : 0xff);
+                    var c = (byte) (premultiplied >= 0 ? 0 : 0xff);
                     if (c != 0) premultiplied = -premultiplied - 1;
                     for (var i = 0; i < _byteLength; i++) {
                         var next = (byte) ((byte) (Math.Truncate(premultiplied) % 0xff) ^ c);
