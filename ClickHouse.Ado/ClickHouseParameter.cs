@@ -37,7 +37,9 @@ namespace ClickHouse.Ado {
                 return $"'{(DateTime) val:yyyy-MM-dd}'";
             if (DbType != 0
 #if !NETCOREAPP11
-                && DbType != DbType.Object && !(val is string) && val is IEnumerable)
+                && DbType != DbType.Object
+#endif
+                && !(val is string) && val is IEnumerable)
                 return string.Join(",", ((IEnumerable) val).Cast<object>().Select(AsSubstitute));
             if ((DbType == 0
 #if !NETCOREAPP11
