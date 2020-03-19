@@ -1,9 +1,5 @@
-﻿using System;
-
-namespace ClickHouse.Isql
-{
-    abstract class Outputter
-    {
+﻿namespace ClickHouse.Isql {
+    internal abstract class Outputter {
         public abstract void ResultStart();
         public abstract void ResultEnd();
         public abstract void RowStart();
@@ -14,11 +10,8 @@ namespace ClickHouse.Isql
 
         public abstract void DataStart();
 
-        public virtual void Start()
-        {
-        }
-        public virtual void End()
-        {
-        }
+        public virtual void Start() { }
+
+        public virtual void End() { }
     }
 }

@@ -2,34 +2,28 @@
 
 using System;
 using System.Collections;
-#if !NETCOREAPP11
-using System.Data;
-#endif
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
+#if !NETCOREAPP11
+using System.Data;
+#endif
 
-namespace ClickHouse.Ado.Impl.ColumnTypes
-{
-    internal class SimpleColumnType<T> : ColumnType
-        where T : struct
-    {
-        public SimpleColumnType()
-        {
-        }
+namespace ClickHouse.Ado.Impl.ColumnTypes {
+    internal class SimpleColumnType<T> : ColumnType where T : struct {
+        public SimpleColumnType() { }
 
-        public SimpleColumnType(T[] data)
-        {
-            Data = data;
-        }
+        public SimpleColumnType(T[] data) => Data = data;
 
         public T[] Data { get; private set; }
 
-        internal override void Read(ProtocolFormatter formatter, int rows)
-        {
+        public override int Rows => Data?.Length ?? 0;
+        internal override Type CLRType => typeof(T);
+
+        internal override void Read(ProtocolFormatter formatter, int rows) {
 #if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
             var itemSize = Marshal.SizeOf(typeof(T));
 #else
@@ -40,11 +34,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             Buffer.BlockCopy(bytes, 0, Data, 0, itemSize * rows);
         }
 
-        public override int Rows => Data?.Length ?? 0;
-        internal override Type CLRType => typeof(T);
-
-        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent)
-        {
+        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) {
             if (typeof(T) == typeof(double))
                 return "Float64";
             if (typeof(T) == typeof(float))
@@ -57,8 +47,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             return typeof(T).Name;
         }
 
-        public override void Write(ProtocolFormatter formatter, int rows)
-        {
+        public override void Write(ProtocolFormatter formatter, int rows) {
             Debug.Assert(Rows == rows, "Row count mismatch!");
 #if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
             var itemSize = Marshal.SizeOf(typeof(T));
@@ -70,8 +59,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
             formatter.WriteBytes(bytes);
         }
 
-        public override void ValueFromConst(Parser.ValueType val)
-        {
+        public override void ValueFromConst(Parser.ValueType val) {
             if (val.TypeHint == Parser.ConstType.String)
                 Data = new[] {(T) Convert.ChangeType(ProtocolFormatter.UnescapeStringValue(val.StringValue), typeof(T))};
             else if (val.TypeHint == Parser.ConstType.Number)
@@ -80,49 +68,25 @@ namespace ClickHouse.Ado.Impl.ColumnTypes
                 throw new NotSupportedException();
         }
 
-        public override void ValueFromParam(ClickHouseParameter parameter)
-        {
+        public override void ValueFromParam(ClickHouseParameter parameter) {
             if (
 #if NETCOREAPP11
                 parameter.DbType==DbType.Integral || parameter.DbType==DbType.Float
 #else
-                parameter.DbType == DbType.Int16 
-                || parameter.DbType == DbType.Int32 
-                || parameter.DbType == DbType.Int64
-                || parameter.DbType == DbType.UInt16 
-                || parameter.DbType == DbType.UInt32 
-                || parameter.DbType == DbType.UInt64
-                || parameter.DbType == DbType.Single 
-                || parameter.DbType == DbType.Decimal 
-                || parameter.DbType == DbType.Double
+                parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64 || parameter.DbType == DbType.UInt16 || parameter.DbType == DbType.UInt32 ||
+                parameter.DbType == DbType.UInt64 || parameter.DbType == DbType.Single || parameter.DbType == DbType.Decimal || parameter.DbType == DbType.Double
 #endif
             )
-            {
                 Data = new[] {(T) Convert.ChangeType(parameter.Value, typeof(T))};
-            }
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to {typeof(T).Name}.");
         }
 
-        public override object Value(int currentRow)
-        {
-            return Data[currentRow];
-        }
+        public override object Value(int currentRow) => Data[currentRow];
 
-        public override long IntValue(int currentRow)
-        {
-            return Convert.ToInt64(Data[currentRow]);
-        }
+        public override long IntValue(int currentRow) => Convert.ToInt64(Data[currentRow]);
 
-        public override void ValuesFromConst(IEnumerable objects)
-        {
-            Data = objects.Cast<T>().ToArray();
-        }
+        public override void ValuesFromConst(IEnumerable objects) => Data = objects.Cast<T>().ToArray();
 
-        public override void NullableValuesFromConst(IEnumerable objects)
-        {
-            Data = objects.Cast<T?>()
-                .Select(x => x ?? (T)Activator.CreateInstance(typeof(T)))
-                .ToArray();
-        }
+        public override void NullableValuesFromConst(IEnumerable objects) => Data = objects.Cast<T?>().Select(x => x ?? (T) Activator.CreateInstance(typeof(T))).ToArray();
     }
 }

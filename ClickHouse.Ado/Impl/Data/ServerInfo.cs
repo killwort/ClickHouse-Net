@@ -1,8 +1,6 @@
-﻿namespace ClickHouse.Ado.Impl.Data
-{
-    public class ServerInfo
-    {
+﻿namespace ClickHouse.Ado.Impl.Data {
+    public class ServerInfo {
         public long Major, Minor, Build, Patch;
-        public string Name,Timezone, DisplayName;
+        public string Name, Timezone, DisplayName;
     }
 }

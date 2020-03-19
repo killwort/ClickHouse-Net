@@ -9,23 +9,21 @@ using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
 
 namespace ClickHouse.Ado.Impl.ColumnTypes {
-    internal class DateTime64ColumnType : DateColumnType
-    {
+    internal class DateTime64ColumnType : DateColumnType {
+        private static readonly DateTime UnixTimeBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly int _precision;
         private readonly string _tz;
-        private static readonly DateTime UnixTimeBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public DateTime64ColumnType(int precision, string tz) {
             _precision = precision;
             _tz = tz;
         }
 
-        public DateTime64ColumnType(DateTime[] data) : base(data)
-        {
-        }
+        public DateTime64ColumnType(DateTime[] data) : base(data) { }
 
-        internal override void Read(ProtocolFormatter formatter, int rows)
-        {
+        public override int Rows => Data?.Length ?? 0;
+
+        internal override void Read(ProtocolFormatter formatter, int rows) {
 #if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
             var itemSize = sizeof(ulong);
 #else
@@ -38,8 +36,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             Data = xdata.Select(x => UnixTimeBase.AddSeconds(x * divisor)).ToArray();
         }
 
-        public override void Write(ProtocolFormatter formatter, int rows)
-        {
+        public override void Write(ProtocolFormatter formatter, int rows) {
             Debug.Assert(Rows == rows, "Row count mismatch!");
             var multiplier = Math.Pow(10, _precision);
             foreach (var d in Data)
@@ -49,29 +46,24 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) {
             if (string.IsNullOrEmpty(_tz) || usageIntent == ClickHouseTypeUsageIntent.ColumnInfo)
                 return $"DateTime64({_precision})";
-            else
-                return $"DateTime64({_precision}, '{ProtocolFormatter.EscapeStringValue(_tz)}')";
+            return $"DateTime64({_precision}, '{ProtocolFormatter.EscapeStringValue(_tz)}')";
         }
 
-        public override int Rows => Data?.Length ?? 0;
-
-        public override void ValueFromConst(Parser.ValueType val)
-        {
+        public override void ValueFromConst(Parser.ValueType val) {
             if (val.TypeHint == Parser.ConstType.String)
-                Data = new[] { DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(val.StringValue), "yyyy-MM-dd HH:mm:ss", null, DateTimeStyles.AssumeUniversal) };
+                Data = new[] {DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(val.StringValue), "yyyy-MM-dd HH:mm:ss", null, DateTimeStyles.AssumeUniversal)};
             else
                 throw new InvalidCastException("Cannot convert numeric value to DateTime.");
         }
-        public override void ValueFromParam(ClickHouseParameter parameter)
-        {
+
+        public override void ValueFromParam(ClickHouseParameter parameter) {
             if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime
 #if !NETCOREAPP11
                                                 || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
 #endif
             )
-                Data = new[] { (DateTime)Convert.ChangeType(parameter.Value, typeof(DateTime)) };
+                Data = new[] {(DateTime) Convert.ChangeType(parameter.Value, typeof(DateTime))};
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to DateTime.");
         }
-
     }
 }
