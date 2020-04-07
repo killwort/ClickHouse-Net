@@ -34,7 +34,7 @@ namespace ClickHouse.Ado {
                 || DbType == 0 && val is DateTime)
                 return $"'{(DateTime) val:yyyy-MM-dd HH:mm:ss}'";
             if (DbType == DbType.Date)
-                return $"'{(DateTime)val:yyyy-MM-dd}'";
+                return $"'{(DateTime) val:yyyy-MM-dd}'";
             if (DbType == DbType.Guid)
                 return $"'{(Guid)val}'";
             if (DbType != 0
