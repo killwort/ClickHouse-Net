@@ -81,7 +81,7 @@ namespace ClickHouse.Ado {
 
         public long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) => throw new NotSupportedException();
 
-        public Guid GetGuid(int i) => throw new NotSupportedException();
+        public Guid GetGuid(int i) => (Guid) GetValue(i);
 
         public short GetInt16(int i) => (short) GetInt64(i);
 
