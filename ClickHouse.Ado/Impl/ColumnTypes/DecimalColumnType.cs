@@ -39,7 +39,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             for (var i = 0; i < rows; i++)
                 if (_byteLength == 4) {
                     Data[i] = BitConverter.ToInt32(bytes, i * _byteLength) / _exponent;
-                } else if (_byteLength == 4) {
+                } else if (_byteLength == 8) {
                     Data[i] = BitConverter.ToInt64(bytes, i * _byteLength) / _exponent;
                 } else {
                     var premultiplied = new BigInteger(bytes.Skip(i * _byteLength).Take(_byteLength).ToArray());
