@@ -33,5 +33,22 @@ namespace ClickHouse.Test {
                 Assert.AreEqual(387,(double) values[1].Item2, .33);
             }
         }
+
+        [Test]
+        public void TestDecimal128()
+        {
+            using (var cnn = ConnectionHandler.GetConnection())
+            {
+                decimal d = 12345678901234567890123456789.1234567890m;
+                var values = new List<decimal>();
+                using (var cmd = cnn.CreateCommand("select toDecimal128('" + d + "',9) as f, toTypeName(f);"))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    reader.ReadAll(r => { values.Add(r.GetDecimal(0)); });
+                }
+
+                Assert.AreEqual(d, values[0]);
+            }
+        }
     }
 }
