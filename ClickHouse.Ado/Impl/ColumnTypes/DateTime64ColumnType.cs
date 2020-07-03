@@ -11,6 +11,7 @@ using Buffer = System.Buffer;
 namespace ClickHouse.Ado.Impl.ColumnTypes {
     internal class DateTime64ColumnType : DateColumnType {
         private static readonly DateTime UnixTimeBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly double MaxUnixTimeSeconds = (DateTime.MaxValue - UnixTimeBase).TotalSeconds;
         private readonly int _precision;
         private readonly string _tz;
 
@@ -33,7 +34,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             var xdata = new ulong[rows];
             Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);
             var divisor = Math.Pow(10, -_precision);
-            Data = xdata.Select(x => UnixTimeBase.AddSeconds(x * divisor)).ToArray();
+            Data = xdata.Select(x => ParseValue(x, divisor)).ToArray();
         }
 
         public override void Write(ProtocolFormatter formatter, int rows) {
@@ -80,6 +81,16 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             )
                 Data = new[] {(DateTime) Convert.ChangeType(parameter.Value, typeof(DateTime))};
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to DateTime.");
+        }
+
+        private DateTime ParseValue(ulong value, double divisor)
+        {
+            var dividedValue = value * divisor;
+
+            if (dividedValue > MaxUnixTimeSeconds)
+                return DateTime.MinValue;
+
+            return UnixTimeBase.AddSeconds(dividedValue);
         }
     }
 }
