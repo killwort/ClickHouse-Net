@@ -108,7 +108,7 @@ namespace ClickHouse.Ado {
             }
 
             if (!readResponse) return;
-            connection.Formatter.ReadResponse();
+            connection.Formatter.ReadResponse(CommandTimeout == 0 ? 10 : CommandTimeout);
         }
 
         private static readonly Regex ParamRegex = new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);

@@ -156,10 +156,18 @@ namespace ClickHouse.Ado.Impl {
             _baseStream.Flush();
         }
 
-        internal Response ReadResponse() {
+        internal Response ReadResponse(int timeout = 1000) {
             var rv = new Response();
+            int tick = Environment.TickCount;
             while (true) {
-                if (!_poll()) continue;
+                if (Environment.TickCount - tick < timeout)
+                {
+                    if (!_poll()) continue;                    
+                }
+                else
+                {
+                    throw new TimeoutException();
+                }
                 if (!ReadPacket(rv)) break;
             }
 
