@@ -11,7 +11,7 @@ namespace ClickHouse.Test {
     [TestFixture]
     public class SimpleTests {
         private ClickHouseConnection GetConnection(
-            string cstr = "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=file-server;Port=9000;Database=default;User=test;Password=123") {
+            string cstr = "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=default;User=andreya;Password=123") {
             var settings = new ClickHouseConnectionSettings(cstr);
             var cnn = new ClickHouseConnection(settings);
             cnn.Open();
@@ -173,9 +173,7 @@ select _f1,_f2,sum(_f3)AS _f3,sum(_f4)AS _f4,groupUniqArray(_f5)[1]AS _f5,sum(_f
 
         [Test]
         public void TestGuidByteOrder() {
-            using (var cnn = GetConnection(
-                "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Compressor=lz4;Host=file-server;Port=9000;Database=default;User=andreya;Password=123"
-            )) {
+            using (var cnn = GetConnection()) {
                 try {
                     cnn.CreateCommand("DROP TABLE guid_test").ExecuteNonQuery();
                 } catch {
