@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
-#if !NETCOREAPP11
-using System.Data;
-#endif
 
 namespace ClickHouse.Ado.Impl.ColumnTypes {
     internal class EnumColumnType : ColumnType {
@@ -59,20 +57,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         }
 
         public override void ValueFromParam(ClickHouseParameter parameter) {
-            if (parameter.DbType == DbType.String
-#if !NETCOREAPP11
-                || parameter.DbType == DbType.StringFixedLength || parameter.DbType == DbType.AnsiString || parameter.DbType == DbType.AnsiStringFixedLength
-#endif
-            )
+            if (parameter.DbType == DbType.String || parameter.DbType == DbType.StringFixedLength || parameter.DbType == DbType.AnsiString || parameter.DbType == DbType.AnsiStringFixedLength)
                 Data = new[] {Values.First(x => x.Item1 == parameter.Value?.ToString()).Item2};
-            else if (
-#if NETCOREAPP11
-                parameter.DbType==DbType.Integral
-#else
-                parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64 || parameter.DbType == DbType.UInt16 || parameter.DbType == DbType.UInt32 ||
-                parameter.DbType == DbType.UInt64
-#endif
-            )
+            else if (parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64 || parameter.DbType == DbType.UInt16 ||
+                     parameter.DbType == DbType.UInt32 || parameter.DbType == DbType.UInt64)
                 Data = new[] {(int) Convert.ChangeType(parameter.Value, typeof(int))};
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to Enum.");
         }

@@ -5,11 +5,11 @@ using System.Xml;
 
 namespace ClickHouse.Isql {
     internal class XmlOutputter : Outputter {
+        private readonly XmlTextWriter writer;
         private int cell;
         private List<string> names;
-        private readonly XmlTextWriter writer;
 
-        public XmlOutputter(Stream s) { writer = new XmlTextWriter(s, Encoding.UTF8); }
+        public XmlOutputter(Stream s) => writer = new XmlTextWriter(s, Encoding.UTF8);
 
         public override void Start() {
             writer.WriteStartDocument(true);

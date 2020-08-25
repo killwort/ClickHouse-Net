@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
-#if !NETCOREAPP11
-#endif
 
 namespace ClickHouse.Ado.Impl.ColumnTypes {
     internal class NullableColumnType : ColumnType {
@@ -47,7 +45,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
 
         public override long IntValue(int currentRow) {
             if (Nulls[currentRow])
-#if NETSTANDARD15 || NETCOREAPP11
+#if CORE_FRAMEWORK
                 throw new ArgumentNullException();
 #else
 				throw new System.Data.SqlTypes.SqlNullValueException();

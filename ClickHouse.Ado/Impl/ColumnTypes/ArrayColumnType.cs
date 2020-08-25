@@ -52,11 +52,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         }
 
         public override void ValueFromParam(ClickHouseParameter parameter) {
-            if (parameter.DbType == 0
-#if !NETCOREAPP11
-                || parameter.DbType == DbType.Object
-#endif
-            )
+            if (parameter.DbType == 0 || parameter.DbType == DbType.Object)
                 ValuesFromConst(new[] {parameter.Value as IEnumerable});
             else throw new NotSupportedException();
         }

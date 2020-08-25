@@ -2,7 +2,7 @@
 
 namespace ClickHouse.Ado.Impl.Settings {
     internal class BoolSettingValue : SettingValue {
-        public BoolSettingValue(bool value) { Value = value; }
+        public BoolSettingValue(bool value) => Value = value;
 
         public bool Value { get; set; }
 

@@ -9,7 +9,7 @@ namespace ClickHouse.Ado {
         private static readonly Dictionary<string, PropertyInfo> Properties;
 
         static ClickHouseConnectionSettings() {
-#if NETSTANDARD15
+#if CORE_FRAMEWORK
             Properties = typeof(ClickHouseConnectionSettings).GetTypeInfo().GetProperties().ToDictionary(x => x.Name, x => x);
 #else
 			Properties = typeof(ClickHouseConnectionSettings).GetProperties().ToDictionary(x => x.Name, x => x);
@@ -98,7 +98,7 @@ namespace ClickHouse.Ado {
         public int MaxBytesBeforeExternalSort { get; set; }
 
         private void SetValue(string name, string value) {
-#if FRAMEWORK20 || FRAMEWORK40
+#if CLASSIC_FRAMEWORK
             Properties[name].GetSetMethod()
 #else
             Properties[name].SetMethod

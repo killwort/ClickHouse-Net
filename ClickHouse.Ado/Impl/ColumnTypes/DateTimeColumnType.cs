@@ -1,6 +1,7 @@
 ﻿#pragma warning disable CS0618
 
 using System;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -8,9 +9,6 @@ using System.Runtime.InteropServices;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
-#if !NETCOREAPP11
-using System.Data;
-#endif
 
 namespace ClickHouse.Ado.Impl.ColumnTypes {
     internal class DateTimeColumnType : DateColumnType {
@@ -23,7 +21,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         public override int Rows => Data?.Length ?? 0;
 
         internal override void Read(ProtocolFormatter formatter, int rows) {
-#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
+#if CLASSIC_FRAMEWORK
             var itemSize = sizeof(uint);
 #else
             var itemSize = Marshal.SizeOf<uint>();
@@ -50,11 +48,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         }
 
         public override void ValueFromParam(ClickHouseParameter parameter) {
-            if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime
-#if !NETCOREAPP11
-                                                || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
-#endif
-            )
+            if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset)
                 Data = new[] {(DateTime) Convert.ChangeType(parameter.Value, typeof(DateTime))};
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to DateTime.");
         }

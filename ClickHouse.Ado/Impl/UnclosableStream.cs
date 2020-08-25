@@ -2,7 +2,7 @@
 
 namespace ClickHouse.Ado.Impl {
     internal class UnclosableStream : Stream {
-#if !NETSTANDARD15 && !NETCOREAPP11
+#if CLASSIC_FRAMEWORK
 		public override void Close()
         {
         }

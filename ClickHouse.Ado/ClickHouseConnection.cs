@@ -1,18 +1,12 @@
 ﻿using System;
+using System.Data;
 using System.IO;
 using System.Net.Sockets;
 using ClickHouse.Ado.Impl;
 using ClickHouse.Ado.Impl.Data;
-#if !NETCOREAPP11
-using System.Data;
-#endif
 
 namespace ClickHouse.Ado {
-    public class ClickHouseConnection
-#if !NETCOREAPP11
-        : IDbConnection
-#endif
-    {
+    public class ClickHouseConnection : IDbConnection {
         private NetworkStream _netStream;
         private Stream _stream;
 
@@ -48,7 +42,7 @@ namespace ClickHouse.Ado {
                 _writer = null;
             }*/
             if (_stream != null) {
-#if !NETSTANDARD15 && !NETCOREAPP11
+#if CLASSIC_FRAMEWORK
 				_stream.Close();
 #endif
                 _stream.Dispose();
@@ -56,7 +50,7 @@ namespace ClickHouse.Ado {
             }
 
             if (_netStream != null) {
-#if !NETSTANDARD15 &&!NETCOREAPP11
+#if CLASSIC_FRAMEWORK
 				_netStream.Close();
 #endif
                 _netStream.Dispose();
@@ -64,7 +58,7 @@ namespace ClickHouse.Ado {
             }
 
             if (_tcpClient != null) {
-#if !NETSTANDARD15 && !NETCOREAPP11
+#if CLASSIC_FRAMEWORK
 				_tcpClient.Close();
 #else
                 _tcpClient.Dispose();
@@ -86,9 +80,7 @@ namespace ClickHouse.Ado {
             //_tcpClient.NoDelay = true;
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
-#if NETCOREAPP11
-            _tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).Wait();
-#elif NETSTANDARD15
+#if CORE_FRAMEWORK
             _tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).ConfigureAwait(false).GetAwaiter().GetResult();
 #else
 			_tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
@@ -115,10 +107,6 @@ namespace ClickHouse.Ado {
             Database = databaseName;
         }
 
-        public ClickHouseCommand CreateCommand() => new ClickHouseCommand(this);
-
-        public ClickHouseCommand CreateCommand(string text) => new ClickHouseCommand(this, text);
-#if !NETCOREAPP11
         public ConnectionState State => Formatter != null ? ConnectionState.Open : ConnectionState.Closed;
 
         public IDbTransaction BeginTransaction() => throw new NotSupportedException();
@@ -126,6 +114,9 @@ namespace ClickHouse.Ado {
         public IDbTransaction BeginTransaction(IsolationLevel il) => throw new NotSupportedException();
 
         IDbCommand IDbConnection.CreateCommand() => new ClickHouseCommand(this);
-#endif
+
+        public ClickHouseCommand CreateCommand() => new ClickHouseCommand(this);
+
+        public ClickHouseCommand CreateCommand(string text) => new ClickHouseCommand(this, text);
     }
 }

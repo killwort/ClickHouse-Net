@@ -29,8 +29,8 @@ namespace ClickHouse.Test {
                     reader.ReadAll(r => { values.Add(Tuple.Create(r.GetDateTime(0), r.GetDecimal(1))); });
                 }
 
-                Assert.AreEqual(0,(double) values[0].Item2, .33);
-                Assert.AreEqual(387,(double) values[1].Item2, .33);
+                Assert.AreEqual(0, (double) values[0].Item2, .33);
+                Assert.AreEqual(387, (double) values[1].Item2, .33);
             }
         }
     }

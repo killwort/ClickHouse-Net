@@ -61,7 +61,7 @@ namespace ClickHouse.Ado.Impl.Data {
         }
 
         public void PopulateEnvironment() {
-#if !NETSTANDARD15 && !NETCOREAPP11
+#if CLASSIC_FRAMEWORK
 			OsUser = Environment.UserName;
 #endif
             ClientHostname = Environment.MachineName;

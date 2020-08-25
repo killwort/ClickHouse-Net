@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-#if !NETCOREAPP11
 using System.Data;
-#endif
+using System.Linq;
 
 namespace ClickHouse.Ado {
-    public class ClickHouseParameterCollection : IEnumerable<ClickHouseParameter>
-#if !NETCOREAPP11
-                                                 , IDataParameterCollection
-#endif
-    {
+    public class ClickHouseParameterCollection : IEnumerable<ClickHouseParameter>, IDataParameterCollection {
         private readonly List<ClickHouseParameter> _parameters = new List<ClickHouseParameter>();
 
         public ClickHouseParameter this[int index] { get => _parameters[index]; set => _parameters[index] = value; }
@@ -41,6 +35,26 @@ namespace ClickHouse.Ado {
 
         public void RemoveAt(string parameterName) => _parameters.RemoveAll(x => x.ParameterName == parameterName);
 
+        int IList.Add(object value) {
+            _parameters.Add((ClickHouseParameter) value);
+            return _parameters.Count - 1;
+        }
+
+        bool IList.Contains(object value) => _parameters.Contains(value);
+
+        int IList.IndexOf(object value) => _parameters.IndexOf((ClickHouseParameter) value);
+
+        void IList.Insert(int index, object value) => _parameters.Insert(index, (ClickHouseParameter) value);
+
+        void IList.Remove(object value) => _parameters.Remove((ClickHouseParameter) value);
+
+        object IList.this[int index] { get => _parameters[index]; set => _parameters[index] = (ClickHouseParameter) value; }
+
+        object IDataParameterCollection.this[string parameterName] {
+            get => _parameters.First(x => x.ParameterName == parameterName);
+            set => _parameters[_parameters.FindIndex(x => x.ParameterName == parameterName)] = (ClickHouseParameter) value;
+        }
+
         public IEnumerator<ClickHouseParameter> GetEnumerator() => _parameters.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => _parameters.GetEnumerator();
@@ -54,12 +68,6 @@ namespace ClickHouse.Ado {
         public void Insert(int index, ClickHouseParameter value) => _parameters.Insert(index, value);
 
         public void Remove(ClickHouseParameter value) => _parameters.Remove(value);
-#if !NETCOREAPP11
-
-        int IList.Add(object value) {
-            _parameters.Add((ClickHouseParameter) value);
-            return _parameters.Count - 1;
-        }
 
         public ClickHouseParameter Add(string name, object value) {
             var p = new ClickHouseParameter {
@@ -79,21 +87,5 @@ namespace ClickHouse.Ado {
             Add(p);
             return p;
         }
-
-        bool IList.Contains(object value) => _parameters.Contains(value);
-
-        int IList.IndexOf(object value) => _parameters.IndexOf((ClickHouseParameter) value);
-
-        void IList.Insert(int index, object value) => _parameters.Insert(index, (ClickHouseParameter) value);
-
-        void IList.Remove(object value) => _parameters.Remove((ClickHouseParameter) value);
-
-        object IList.this[int index] { get => _parameters[index]; set => _parameters[index] = (ClickHouseParameter) value; }
-
-        object IDataParameterCollection.this[string parameterName] {
-            get => _parameters.First(x => x.ParameterName == parameterName);
-            set => _parameters[_parameters.FindIndex(x => x.ParameterName == parameterName)] = (ClickHouseParameter) value;
-        }
-#endif
     }
 }

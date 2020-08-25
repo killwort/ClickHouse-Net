@@ -1,35 +1,31 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
-#if !NETCOREAPP11
-using System.Data;
-#endif
 
 namespace ClickHouse.Ado {
-    public class ClickHouseCommand
-#if !NETCOREAPP11
-        : IDbCommand
-#endif
-    {
+    public class ClickHouseCommand : IDbCommand {
+        private static readonly Regex ParamRegex = new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public ClickHouseCommand() { }
 
         public ClickHouseCommand(ClickHouseConnection clickHouseConnection) => Connection = clickHouseConnection;
 
         public ClickHouseCommand(ClickHouseConnection clickHouseConnection, string text) : this(clickHouseConnection) => CommandText = text;
 
+        public ClickHouseConnection Connection { get; set; }
+        public ClickHouseParameterCollection Parameters { get; } = new ClickHouseParameterCollection();
+
         public void Dispose() { }
 
         public void Prepare() => throw new NotSupportedException();
 
         public void Cancel() => throw new NotSupportedException();
-        public ClickHouseParameter CreateParameter() => new ClickHouseParameter();
-#if !NETCOREAPP11
 
         IDbDataParameter IDbCommand.CreateParameter() => CreateParameter();
 
@@ -39,7 +35,34 @@ namespace ClickHouse.Ado {
         IDataParameterCollection IDbCommand.Parameters => Parameters;
         public UpdateRowSource UpdatedRowSource { get; set; }
 
-#endif
+        public int ExecuteNonQuery() {
+            Execute(true, Connection);
+            return 0;
+        }
+
+        public IDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
+
+        public IDataReader ExecuteReader(CommandBehavior behavior) {
+            var tempConnection = Connection;
+            Execute(false, tempConnection);
+            return new ClickHouseDataReader(tempConnection, behavior);
+        }
+
+        public object ExecuteScalar() {
+            object result = null;
+            using (var reader = ExecuteReader()) {
+                do {
+                    if (!reader.Read()) continue;
+                    result = reader.GetValue(0);
+                } while (reader.NextResult());
+            }
+
+            return result;
+        }
+
+        public string CommandText { get; set; }
+        public int CommandTimeout { get; set; }
+        public ClickHouseParameter CreateParameter() => new ClickHouseParameter();
 
         private void Execute(bool readResponse, ClickHouseConnection connection) {
             if (connection.State != ConnectionState.Open) throw new InvalidOperationException("Connection isn't open");
@@ -111,47 +134,7 @@ namespace ClickHouse.Ado {
             connection.Formatter.ReadResponse();
         }
 
-        private static readonly Regex ParamRegex = new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
         private string SubstituteParameters(string commandText) =>
             ParamRegex.Replace(commandText, m => m.Groups["n"].Value == ":" || m.Groups["n"].Value == "@" ? m.Groups["n"].Value : Parameters[m.Groups["n"].Value].AsSubstitute());
-
-        public int ExecuteNonQuery() {
-            Execute(true, Connection);
-            return 0;
-        }
-#if NETCOREAPP11
-        public ClickHouseDataReader ExecuteReader()
-        {
-            Execute(false);
-            return new ClickHouseDataReader(_clickHouseConnection);
-        }
-#else
-        public IDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
-
-        public IDataReader ExecuteReader(CommandBehavior behavior) {
-            var tempConnection = Connection;
-            Execute(false, tempConnection);
-            return new ClickHouseDataReader(tempConnection, behavior);
-        }
-#endif
-
-        public object ExecuteScalar() {
-            object result = null;
-            using (var reader = ExecuteReader()) {
-                do {
-                    if (!reader.Read()) continue;
-                    result = reader.GetValue(0);
-                } while (reader.NextResult());
-            }
-
-            return result;
-        }
-
-        public ClickHouseConnection Connection { get; set; }
-
-        public string CommandText { get; set; }
-        public int CommandTimeout { get; set; }
-        public ClickHouseParameterCollection Parameters { get; } = new ClickHouseParameterCollection();
     }
 }

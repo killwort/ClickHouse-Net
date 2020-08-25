@@ -2,15 +2,13 @@
 
 using System;
 using System.Collections;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
-#if !NETCOREAPP11
-using System.Data;
-#endif
 
 namespace ClickHouse.Ado.Impl.ColumnTypes {
     internal class SimpleColumnType<T> : ColumnType where T : struct {
@@ -24,7 +22,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         internal override Type CLRType => typeof(T);
 
         internal override void Read(ProtocolFormatter formatter, int rows) {
-#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
+#if CLASSIC_FRAMEWORK
             var itemSize = Marshal.SizeOf(typeof(T));
 #else
             var itemSize = Marshal.SizeOf<T>();
@@ -49,7 +47,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
 
         public override void Write(ProtocolFormatter formatter, int rows) {
             Debug.Assert(Rows == rows, "Row count mismatch!");
-#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
+#if CLASSIC_FRAMEWORK
             var itemSize = Marshal.SizeOf(typeof(T));
 #else
             var itemSize = Marshal.SizeOf<T>();
@@ -69,14 +67,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         }
 
         public override void ValueFromParam(ClickHouseParameter parameter) {
-            if (
-#if NETCOREAPP11
-                parameter.DbType==DbType.Integral || parameter.DbType==DbType.Float
-#else
-                parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64 || parameter.DbType == DbType.UInt16 || parameter.DbType == DbType.UInt32 ||
-                parameter.DbType == DbType.UInt64 || parameter.DbType == DbType.Single || parameter.DbType == DbType.Decimal || parameter.DbType == DbType.Double
-#endif
-            )
+            if (parameter.DbType == DbType.Int16 || parameter.DbType == DbType.Int32 || parameter.DbType == DbType.Int64 || parameter.DbType == DbType.UInt16 || parameter.DbType == DbType.UInt32 ||
+                parameter.DbType == DbType.UInt64 || parameter.DbType == DbType.Single || parameter.DbType == DbType.Decimal || parameter.DbType == DbType.Double)
                 Data = new[] {(T) Convert.ChangeType(parameter.Value, typeof(T))};
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to {typeof(T).Name}.");
         }

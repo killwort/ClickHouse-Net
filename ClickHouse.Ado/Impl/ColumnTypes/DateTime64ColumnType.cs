@@ -25,7 +25,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         public override int Rows => Data?.Length ?? 0;
 
         internal override void Read(ProtocolFormatter formatter, int rows) {
-#if FRAMEWORK20 || FRAMEWORK40 || FRAMEWORK45
+#if CLASSIC_FRAMEWORK
             var itemSize = sizeof(ulong);
 #else
             var itemSize = Marshal.SizeOf<ulong>();
@@ -74,17 +74,12 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         }
 
         public override void ValueFromParam(ClickHouseParameter parameter) {
-            if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime
-#if !NETCOREAPP11
-                                                || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset
-#endif
-            )
+            if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset)
                 Data = new[] {(DateTime) Convert.ChangeType(parameter.Value, typeof(DateTime))};
             else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to DateTime.");
         }
 
-        private DateTime ParseValue(ulong value, double divisor)
-        {
+        private DateTime ParseValue(ulong value, double divisor) {
             var dividedValue = value * divisor;
 
             if (dividedValue > MaxUnixTimeSeconds)

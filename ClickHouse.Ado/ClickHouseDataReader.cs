@@ -3,34 +3,20 @@ using ClickHouse.Ado.Impl.ColumnTypes;
 using ClickHouse.Ado.Impl.Data;
 #if !NETCOREAPP11
 using System.Data;
+
 #endif
 
 namespace ClickHouse.Ado {
-    public class ClickHouseDataReader :
-#if NETCOREAPP11
-        IDisposable
-#else
-        IDataReader
-#endif
-    {
-#if !NETCOREAPP11
+    public class ClickHouseDataReader : IDataReader {
         private readonly CommandBehavior _behavior;
-#endif
         private ClickHouseConnection _clickHouseConnection;
 
         private Block _currentBlock;
         private int _currentRow;
 
-        internal ClickHouseDataReader(ClickHouseConnection clickHouseConnection
-#if !NETCOREAPP11
-                                      ,
-                                      CommandBehavior behavior
-#endif
-        ) {
+        internal ClickHouseDataReader(ClickHouseConnection clickHouseConnection, CommandBehavior behavior) {
             _clickHouseConnection = clickHouseConnection;
-#if !NETCOREAPP11
             _behavior = behavior;
-#endif
             NextResult();
         }
 
@@ -102,12 +88,10 @@ namespace ClickHouse.Ado {
         public decimal GetDecimal(int i) => Convert.ToDecimal(GetValue(i));
 
         public DateTime GetDateTime(int i) => Convert.ToDateTime(GetValue(i));
-#if !NETCOREAPP11
         public IDataReader GetData(int i) => throw new NotSupportedException();
         object IDataRecord.this[int i] => GetValue(i);
 
         object IDataRecord.this[string name] => GetValue(GetOrdinal(name));
-#endif
 
         public bool IsDBNull(int i) {
             if (_currentBlock == null)
@@ -124,15 +108,12 @@ namespace ClickHouse.Ado {
         public void Close() {
             if (_currentBlock != null)
                 _clickHouseConnection.Formatter.ReadResponse();
-#if !NETCOREAPP11
             if ((_behavior & CommandBehavior.CloseConnection) != 0)
                 _clickHouseConnection.Close();
-#endif
             _clickHouseConnection = null;
         }
-#if !NETCOREAPP11
+
         public DataTable GetSchemaTable() => throw new NotSupportedException();
-#endif
 
         public bool NextResult() {
             _currentRow = -1;

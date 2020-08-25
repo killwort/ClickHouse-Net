@@ -9,9 +9,9 @@ using ClickHouse.Ado.Impl.Data;
 namespace ClickHouse.Ado.Impl.ColumnTypes {
     internal class DecimalColumnType : ColumnType {
         private readonly int _byteLength;
+        private readonly decimal _exponent;
         private readonly uint _length;
         private readonly uint _precision;
-        private readonly decimal _exponent;
 
         public DecimalColumnType(uint length, uint precision) {
             _length = length;
@@ -43,8 +43,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                     Data[i] = BitConverter.ToInt64(bytes, i * _byteLength) / _exponent;
                 } else {
                     var premultiplied = new BigInteger(bytes.Skip(i * _byteLength).Take(_byteLength).ToArray());
-                    var result = ((decimal) BigInteger.DivRem(premultiplied, new BigInteger(_exponent), out var remainder));
-                    result += ((decimal) remainder) / _exponent;
+                    var result = (decimal) BigInteger.DivRem(premultiplied, new BigInteger(_exponent), out var remainder);
+                    result += (decimal) remainder / _exponent;
                     Data[i] = result;
                 }
         }
@@ -59,9 +59,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                     formatter.WriteBytes(BitConverter.GetBytes((long) premultiplied));
                 } else {
                     var bytes = premultiplied.ToByteArray();
-                    for (var i = 0; i < _byteLength; i++) {
-                        formatter.WriteByte(i < bytes.Length ? bytes[i] : (byte) 0);
-                    }
+                    for (var i = 0; i < _byteLength; i++) formatter.WriteByte(i < bytes.Length ? bytes[i] : (byte) 0);
                 }
             }
         }

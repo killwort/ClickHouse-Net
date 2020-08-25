@@ -1,6 +1,5 @@
-
-
 //This may actually work with ZStdNet from NuGet
+
 #if false
 namespace ClickHouse.Ado.Impl.Compress
 {

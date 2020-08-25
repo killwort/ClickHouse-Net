@@ -20,17 +20,15 @@ namespace ClickHouse.Test {
         [Test]
         public void TestInsertBulk() {
             using (var cnn = ConnectionHandler.GetConnection()) {
-                cnn.CreateCommand("INSERT INTO test_nfs (k, nfs) VALUES @bulk").AddParameter("bulk", DbType.Object, new object[] {
-                       new object[] {DateTime.Now, "aa"}, new object[] {DateTime.Now, null}
-                   })
+                cnn.CreateCommand("INSERT INTO test_nfs (k, nfs) VALUES @bulk").AddParameter("bulk", DbType.Object, new object[] {new object[] {DateTime.Now, "aa"}, new object[] {DateTime.Now, null}})
                    .ExecuteNonQuery();
             }
         }
+
         [Test]
         public void TestInsertLiteral() {
             using (var cnn = ConnectionHandler.GetConnection()) {
                 cnn.CreateCommand("INSERT INTO test_nfs (k, nfs) VALUES ('2020-01-01',null)").ExecuteNonQuery();
-                
             }
         }
     }
