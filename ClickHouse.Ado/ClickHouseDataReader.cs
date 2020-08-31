@@ -1,10 +1,7 @@
 ﻿using System;
 using ClickHouse.Ado.Impl.ColumnTypes;
 using ClickHouse.Ado.Impl.Data;
-#if !NETCOREAPP11
 using System.Data;
-
-#endif
 
 namespace ClickHouse.Ado {
     public class ClickHouseDataReader : IDataReader {

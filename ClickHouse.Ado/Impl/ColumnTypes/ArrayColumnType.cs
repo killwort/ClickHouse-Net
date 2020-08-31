@@ -85,6 +85,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
 
             Offsets.ValuesFromConst(offsets);
             InnerType.ValuesFromConst(itemsPlain);
+            _outerRows = offsets.Count;
         }
     }
 }
