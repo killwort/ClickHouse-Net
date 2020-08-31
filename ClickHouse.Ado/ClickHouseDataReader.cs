@@ -105,7 +105,7 @@ namespace ClickHouse.Ado {
         public void Close() {
             if (_currentBlock != null)
                 _clickHouseConnection.Formatter.ReadResponse();
-            if ((_behavior & CommandBehavior.CloseConnection) != 0)
+            if (_clickHouseConnection != null && (_behavior & CommandBehavior.CloseConnection) != 0)
                 _clickHouseConnection.Close();
             _clickHouseConnection = null;
         }
