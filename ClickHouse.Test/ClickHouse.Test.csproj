@@ -63,6 +63,7 @@
     <Compile Include="TestDateTime64Support.cs" />
     <Compile Include="TestGuidSupport.cs" />
     <Compile Include="Test_82_NullableFixedString.cs" />
+    <Compile Include="Test_99_NegativeNumerics.cs" />
     <Compile Include="Test_84_DecimalSupport.cs" />
   </ItemGroup>
   <ItemGroup>

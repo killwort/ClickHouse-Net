@@ -48,7 +48,14 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                     Data[i] = result;
                 }
         }
-
+        private static readonly int[] _lookup =
+        {
+            32, 0, 1, 26, 2, 23, 27, 0, 3, 16, 24, 30, 28, 11, 0, 13, 4, 7, 17,
+            0, 25, 22, 31, 15, 29, 10, 12, 6, 0, 21, 14, 9, 5, 20, 8, 19, 18
+        };
+        private static int NTZ(int n) {
+            return _lookup[(n & -n) % 37];
+        }
         public override void Write(ProtocolFormatter formatter, int rows) {
             Debug.Assert(Rows == rows, "Row count mismatch!");
             foreach (var d in Data) {
@@ -58,8 +65,27 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                 } else if (_byteLength == 8) {
                     formatter.WriteBytes(BitConverter.GetBytes((long) premultiplied));
                 } else {
+                    var neg = premultiplied < 0;
+                    if (neg) premultiplied = -premultiplied;
                     var bytes = premultiplied.ToByteArray();
-                    for (var i = 0; i < _byteLength; i++) formatter.WriteByte(i < bytes.Length ? bytes[i] : (byte) 0);
+                    if (neg) {
+                        var ntzPassed = false;
+                        for (var i = 0; i < _byteLength; i++) {
+                            var cb = i < bytes.Length ? bytes[i] : (byte) 0;
+                            if (ntzPassed)
+                                cb = (byte) ~cb;
+                            else {
+                                var ntz = NTZ(cb);
+                                if ( ntz< 8) {
+                                    ntzPassed = true;
+                                    cb = (byte) (((cb >> (ntz + 1)) << (ntz + 1)) + 1);
+                                }
+                            }
+                            formatter.WriteByte(cb);
+                        }
+                    }else
+                        for (var i = 0; i < _byteLength; i++)
+                            formatter.WriteByte(i < bytes.Length ? bytes[i] : (byte) 0);
                 }
             }
         }
