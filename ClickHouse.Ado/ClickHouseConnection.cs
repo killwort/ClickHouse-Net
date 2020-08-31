@@ -72,6 +72,45 @@ namespace ClickHouse.Ado {
             }
         }
 
+
+
+        private void Connect(TcpClient client, string hostName, int port, int timeout) {
+#if CORE_FRAMEWORK
+            var cTask = client.ConnectAsync(hostName, port);
+            if (!cTask.Wait(timeout) || !client.Connected) {
+                cTask.ContinueWith(_ => client.Dispose());
+                throw new TimeoutException("Timeout waiting for connection.");
+            }
+#else
+            var state = new TcpClientState {
+                Client = client,
+                Success = true
+            };
+            var ar = client.BeginConnect(hostName, port, EndConnect, state);
+            state.Success = ar.AsyncWaitHandle.WaitOne(timeout, false);
+            if (!state.Success || !client.Connected)
+                throw new TimeoutException("Timeout waiting for connection.");
+}
+        private class TcpClientState
+        {
+            public TcpClient Client { get; set; }
+            public bool Success { get; set; }
+        }
+        private void EndConnect(IAsyncResult ar) {
+            var state = (TcpClientState) ar.AsyncState;
+            try {
+                state.Client.EndConnect(ar);
+            } catch {
+            }
+
+            if (state.Client.Connected && state.Success)
+                return;
+
+            state.Client.Close();
+
+#endif
+        }
+
         public void Open() {
             if (_tcpClient != null) throw new InvalidOperationException("Connection already open.");
             _tcpClient = new TcpClient();
@@ -80,11 +119,7 @@ namespace ClickHouse.Ado {
             //_tcpClient.NoDelay = true;
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
-#if CORE_FRAMEWORK
-            _tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).ConfigureAwait(false).GetAwaiter().GetResult();
-#else
-			_tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
-#endif
+            Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
             _netStream = new NetworkStream(_tcpClient.Client);
             _stream = new UnclosableStream(_netStream);
             /*_reader=new BinaryReader(new UnclosableStream(_stream));
@@ -99,7 +134,7 @@ namespace ClickHouse.Ado {
 
         public string ConnectionString { get => ConnectionSettings.ToString(); set => ConnectionSettings = new ClickHouseConnectionSettings(value); }
 
-        public int ConnectionTimeout { get; set; }
+        public int ConnectionTimeout { get; set; } = 10000;
         public string Database { get; private set; }
 
         public void ChangeDatabase(string databaseName) {
