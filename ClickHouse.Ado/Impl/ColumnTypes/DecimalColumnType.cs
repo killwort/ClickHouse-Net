@@ -78,7 +78,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                                 var ntz = NTZ(cb);
                                 if ( ntz< 8) {
                                     ntzPassed = true;
-                                    cb = (byte) (((cb >> (ntz + 1)) << (ntz + 1)) + 1);
+                                    cb = (byte) ((((~(cb >> (ntz + 2))) << 1) + 1) << (ntz + 1));
                                 }
                             }
                             formatter.WriteByte(cb);
