@@ -19,7 +19,7 @@ namespace ClickHouse.Test {
         }
 
         [Test]
-        public void TestRoundtrip([Values(-100, -40.96)]decimal value) {
+        public void TestRoundtrip([Values(-100, -40.96, 40.96, 100, -1234567890.1234, 1234567890.1234)]decimal value) {
             using (var cnn = ConnectionHandler.GetConnection()) {
                 cnn.CreateCommand("INSERT INTO test_99_neg_num (FixedDate,Amount1,Amount2,Amount3) VALUES @bulk").AddParameter("bulk", DbType.Object, new object[] {
                        new object[] {DateTime.Now, value,value,value}
@@ -31,9 +31,9 @@ namespace ClickHouse.Test {
                     reader.ReadAll(r => { values.Add(Tuple.Create(r.GetDateTime(0), r.GetDecimal(1),r.GetDecimal(2),r.GetDecimal(3))); });
                 }
 
-                Assert.AreEqual((double)value, (double) values[0].Item2, .1);
-                Assert.AreEqual((double)value, (double) values[0].Item3, .1);
-                Assert.AreEqual((double)value, (double) values[0].Item4, .1);
+                Assert.AreEqual(value, values[0].Item2);
+                Assert.AreEqual(value, values[0].Item3);
+                Assert.AreEqual(value, values[0].Item4);
             }
         }
     }
