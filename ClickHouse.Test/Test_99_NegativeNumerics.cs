@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using ClickHouse.Ado;
 using NUnit.Framework;
@@ -31,9 +32,11 @@ namespace ClickHouse.Test {
                     reader.ReadAll(r => { values.Add(Tuple.Create(r.GetDateTime(0), r.GetDecimal(1),r.GetDecimal(2),r.GetDecimal(3))); });
                 }
 
-                Assert.AreEqual(value, values[0].Item2);
-                Assert.AreEqual(value, values[0].Item3);
-                Assert.AreEqual(value, values[0].Item4);
+                var row = values.FirstOrDefault(x => decimal.Equals(x.Item2, value));
+                Assert.IsNotNull(row);
+                Assert.AreEqual(value, row.Item2);
+                Assert.AreEqual(value, row.Item3);
+                Assert.AreEqual(value, row.Item4);
             }
         }
     }
