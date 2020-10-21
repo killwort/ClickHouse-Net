@@ -1,41 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ClickHouse.Ado;
 
-namespace ClickHouse.Isql
-{
-    class Program
-    {
-        static int Help(string err=null)
-        {
-            if(err!=null)
-                Console.Error.WriteLine("Error: {0}",err);
-            Console.Error.WriteLine("Usage: clickhouse.isql [-host <hostname>] [-port <port>] [-user <username>] [-pass <password>] [-db <database>] [-output {TSV|TSVWithHeader|XML}] [-coalesce <coalescing value>] <query>");
+namespace ClickHouse.Isql {
+    internal class Program {
+        private static int Help(string err = null) {
+            if (err != null)
+                Console.Error.WriteLine("Error: {0}", err);
+            Console.Error.WriteLine(
+                "Usage: clickhouse.isql [-host <hostname>] [-port <port>] [-user <username>] [-pass <password>] [-db <database>] [-output {TSV|TSVWithHeader|XML}] [-coalesce <coalescing value>] <query>"
+            );
             return -1;
         }
-        static int Main(string[] args)
-        {
-            string host = "localhost", user = "", pass = "", query = null, db="default";
+
+        private static int Main(string[] args) {
+            string host = "localhost", user = "", pass = "", query = null, db = "default";
             string coalesce = null;
-            int port = 9000;
-            var formatters=new Dictionary<OutputFormat,Func<Stream,Outputter>>
-            {
-                {OutputFormat.TSV, s=>new TsvOutputter(s) },
-                {OutputFormat.TSVWithHeader, s=>new TsvWithHeaderOutputter(s) },
-                {OutputFormat.XML, s=>new XmlOutputter(s) },
+            var port = 9000;
+            var formatters = new Dictionary<OutputFormat, Func<Stream, Outputter>> {
+                {OutputFormat.TSV, s => new TsvOutputter(s)},
+                {OutputFormat.TSVWithHeader, s => new TsvWithHeaderOutputter(s)},
+                {OutputFormat.XML, s => new XmlOutputter(s)}
             };
-            OutputFormat format=OutputFormat.TSV;
+            var format = OutputFormat.TSV;
             for (var i = 0; i < args.Length; i++)
-            {
                 if (!args[i].StartsWith("-") && !args[i].StartsWith("/"))
                     query = args[i];
                 else
-                    switch (args[i].TrimStart('-', '/').ToLower())
-                    {
+                    switch (args[i].TrimStart('-', '/').ToLower()) {
                         case "h":
                         case "host":
                             if (i == args.Length - 1)
@@ -70,7 +63,7 @@ namespace ClickHouse.Isql
                         case "format":
                             if (i == args.Length - 1)
                                 return Help("Missing format parameter value.");
-                            format = (OutputFormat)Enum.Parse(typeof(OutputFormat),args[++i],true);
+                            format = (OutputFormat) Enum.Parse(typeof(OutputFormat), args[++i], true);
                             break;
                         case "c":
                         case "coalesce":
@@ -79,39 +72,36 @@ namespace ClickHouse.Isql
                             coalesce = args[++i];
                             break;
                     }
-            }
+
             if (string.IsNullOrWhiteSpace(query))
                 return Help("Missing query to execute");
             var formatter = formatters[format](Console.OpenStandardOutput());
             formatter.Start();
-            using (var cnn = new ClickHouseConnection($"Host={host};Port={port};User={user};Password={pass};Database={db}"))
-            {
+            using (var cnn = new ClickHouseConnection($"Host={host};Port={port};User={user};Password={pass};Database={db}")) {
                 cnn.Open();
-                bool hasOutput = false;
+                var hasOutput = false;
                 using (var cmd = cnn.CreateCommand(query))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    do
-                    {
+                using (var reader = cmd.ExecuteReader()) {
+                    do {
                         formatter.ResultStart();
                         for (var i = 0; i < reader.FieldCount; i++)
                             formatter.HeaderCell(reader.GetName(i));
                         formatter.DataStart();
-                        while (reader.Read())
-                        {
+                        while (reader.Read()) {
                             formatter.RowStart();
-                            for (var i = 0; i < reader.FieldCount; i++)
-                            {
+                            for (var i = 0; i < reader.FieldCount; i++) {
                                 formatter.ValueCell(reader.GetValue(i));
                                 hasOutput = true;
                             }
+
                             formatter.RowEnd();
                         }
+
                         formatter.ResultEnd();
                     } while (reader.NextResult());
                 }
-                if (!hasOutput && coalesce!=null)
-                {
+
+                if (!hasOutput && coalesce != null) {
                     formatter.ResultStart();
                     formatter.HeaderCell("NULL");
                     formatter.DataStart();
@@ -121,6 +111,7 @@ namespace ClickHouse.Isql
                     formatter.ResultEnd();
                 }
             }
+
             formatter.End();
             return 0;
         }

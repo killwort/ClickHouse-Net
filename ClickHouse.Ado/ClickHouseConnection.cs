@@ -1,50 +1,34 @@
 ﻿using System;
-#if !NETCOREAPP11
 using System.Data;
-#endif
 using System.IO;
 using System.Net.Sockets;
 using ClickHouse.Ado.Impl;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado
-{
-    public class ClickHouseConnection
-#if !NETCOREAPP11
-        : IDbConnection
-#endif
-    {
-        public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
-
-        public ClickHouseConnection()
-        {
-        }
-
-        public ClickHouseConnection(ClickHouseConnectionSettings settings)
-        {
-            ConnectionSettings = settings;
-        }
-        public ClickHouseConnection(string connectionString)
-        {
-            ConnectionSettings = new ClickHouseConnectionSettings(connectionString);
-        }
+namespace ClickHouse.Ado {
+    public class ClickHouseConnection : IDbConnection {
+        private NetworkStream _netStream;
+        private Stream _stream;
 
         private TcpClient _tcpClient;
-        private Stream _stream;
-        private Stream _bufferedStream;
+
+        public ClickHouseConnection() { }
+
+        public ClickHouseConnection(ClickHouseConnectionSettings settings) => ConnectionSettings = settings;
+
+        public ClickHouseConnection(string connectionString) => ConnectionSettings = new ClickHouseConnectionSettings(connectionString);
+
+        public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
+
         /*private BinaryReader _reader;
         private BinaryWriter _writer;*/
-        internal ProtocolFormatter Formatter { get;
-            set; }
-        private NetworkStream _netStream;
+        internal ProtocolFormatter Formatter { get; set; }
 
-        public void Dispose()
-        {
+        public void Dispose() {
             if (_tcpClient != null) Close();
         }
 
-        public void Close()
-        {
+        public void Close() {
             /*if (_reader != null)
             {
                 _reader.Close();
@@ -57,114 +41,117 @@ namespace ClickHouse.Ado
                 _writer.Dispose();
                 _writer = null;
             }*/
-            if (_stream != null)
-            {
-#if !NETSTANDARD15 && !NETCOREAPP11
+            if (_stream != null) {
+#if CLASSIC_FRAMEWORK
 				_stream.Close();
 #endif
-				_stream.Dispose();
+                _stream.Dispose();
                 _stream = null;
             }
-            if (_bufferedStream != null)
-            {
-#if !NETSTANDARD15 &&!NETCOREAPP11
-				_bufferedStream.Close();
-#endif
-                _bufferedStream.Dispose();
-                _bufferedStream = null;
-            }
-            if (_netStream != null)
-            {
-#if !NETSTANDARD15 &&!NETCOREAPP11
+
+            if (_netStream != null) {
+#if CLASSIC_FRAMEWORK
 				_netStream.Close();
 #endif
-				_netStream.Dispose();
+                _netStream.Dispose();
                 _netStream = null;
             }
-            if (_tcpClient != null)
-            {
-#if !NETSTANDARD15 && !NETCOREAPP11
+
+            if (_tcpClient != null) {
+#if CLASSIC_FRAMEWORK
 				_tcpClient.Close();
 #else
-				_tcpClient.Dispose();
+                _tcpClient.Dispose();
 #endif
-				_tcpClient = null;
+                _tcpClient = null;
             }
-            if (Formatter != null)
-            {
+
+            if (Formatter != null) {
                 Formatter.Close();
                 Formatter = null;
             }
         }
 
 
-        public void Open()
+
+        private void Connect(TcpClient client, string hostName, int port, int timeout) {
+#if CORE_FRAMEWORK
+            var cTask = client.ConnectAsync(hostName, port);
+            if (!cTask.Wait(timeout) || !client.Connected) {
+                cTask.ContinueWith(_ => client.Dispose());
+                throw new TimeoutException("Timeout waiting for connection.");
+            }
+#else
+            var state = new TcpClientState {
+                Client = client,
+                Success = true
+            };
+            var ar = client.BeginConnect(hostName, port, EndConnect, state);
+            state.Success = ar.AsyncWaitHandle.WaitOne(timeout, false);
+            if (!state.Success || !client.Connected)
+                throw new TimeoutException("Timeout waiting for connection.");
+}
+        private class TcpClientState
         {
-            if(_tcpClient!=null)throw new InvalidOperationException("Connection already open.");
-            _tcpClient=new TcpClient();
+            public TcpClient Client { get; set; }
+            public bool Success { get; set; }
+        }
+        private void EndConnect(IAsyncResult ar) {
+            var state = (TcpClientState) ar.AsyncState;
+            try {
+                state.Client.EndConnect(ar);
+            } catch {
+            }
+
+            if (state.Client.Connected && state.Success)
+                return;
+
+            state.Client.Close();
+
+#endif
+        }
+
+        public void Open() {
+            if (_tcpClient != null) throw new InvalidOperationException("Connection already open.");
+            _tcpClient = new TcpClient();
             _tcpClient.ReceiveTimeout = ConnectionSettings.SocketTimeout;
             _tcpClient.SendTimeout = ConnectionSettings.SocketTimeout;
             //_tcpClient.NoDelay = true;
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
-#if NETCOREAPP11
-            _tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).Wait();
-#elif NETSTANDARD15
-            _tcpClient.ConnectAsync(ConnectionSettings.Host, ConnectionSettings.Port).ConfigureAwait(false).GetAwaiter().GetResult();
-#else
-			_tcpClient.Connect(ConnectionSettings.Host, ConnectionSettings.Port);
-#endif
+            Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
             _netStream = new NetworkStream(_tcpClient.Client);
-            _bufferedStream=new BufferedStream(_netStream);
-            _stream =new UnclosableStream(_bufferedStream);
+            _stream = new UnclosableStream(_netStream);
             /*_reader=new BinaryReader(new UnclosableStream(_stream));
             _writer=new BinaryWriter(new UnclosableStream(_stream));*/
-            var ci=new ClientInfo();
+            var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(_stream,ci, ()=>_tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead));
+            Formatter = new ProtocolFormatter(_stream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
             Formatter.Handshake(ConnectionSettings);
         }
 
-        public string ConnectionString
-        {
-            get { return ConnectionSettings.ToString(); }
-            set { ConnectionSettings=new ClickHouseConnectionSettings(value);}
+        public string ConnectionString { get => ConnectionSettings.ToString(); set => ConnectionSettings = new ClickHouseConnectionSettings(value); }
+
+        public int ConnectionTimeout { get; set; } = 10000;
+        public string Database { get; private set; }
+
+        public void ChangeDatabase(string databaseName) {
+            CreateCommand("USE " + ProtocolFormatter.EscapeName(databaseName)).ExecuteNonQuery();
+            Database = databaseName;
         }
 
-        public int ConnectionTimeout { get; set; }
-        public string Database { get; private set; }
-#if !NETCOREAPP11
         public ConnectionState State => Formatter != null ? ConnectionState.Open : ConnectionState.Closed;
 
-        public IDbTransaction BeginTransaction()
-        {
-            throw new NotSupportedException();
-        }
+        public IDbTransaction BeginTransaction() => throw new NotSupportedException();
 
-        public IDbTransaction BeginTransaction(IsolationLevel il)
-        {
-            throw new NotSupportedException();
-        }
-        IDbCommand IDbConnection.CreateCommand()
-        {
-            return new ClickHouseCommand(this);
-        }
-#endif
-        public void ChangeDatabase(string databaseName)
-        {
-            CreateCommand("USE " + ProtocolFormatter.EscapeName(databaseName)).ExecuteNonQuery();
-            Database=databaseName;
-        }
+        public IDbTransaction BeginTransaction(IsolationLevel il) => throw new NotSupportedException();
 
-        public ClickHouseCommand CreateCommand()
-        {
-            return new ClickHouseCommand(this);
-        }
-        public ClickHouseCommand CreateCommand(string text)
-        {
-            return new ClickHouseCommand(this,text);
-        }
+        IDbCommand IDbConnection.CreateCommand() => new ClickHouseCommand(this);
+
+        public ClickHouseCommand CreateCommand() => new ClickHouseCommand(this);
+
+        public ClickHouseCommand CreateCommand(string text) => new ClickHouseCommand(this, text);
     }
 }

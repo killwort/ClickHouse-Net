@@ -23,6 +23,7 @@ INSERT INTO some_table (col1, col2, col3) VALUES @bulk
 ```
 
 And after that you must add parameted named `bulk` with its `Value` castable to `IEnumerable` each item of it must be `IEnumerable` too. Empty lists are not allowed.
+Alternatively you may pass `IBulkInsertEnumerable` implementation as a `bulk`'s value to speed up processing and use less memory inside clickhouse driver.
 This may be used conviniently with the following syntax:
 
 ```SQL
@@ -82,6 +83,7 @@ INSERT INTO some_table (col1, col2, col3) VALUES @bulk
 ```
 
 Для этой команды надо задать параметр `bulk` со значением `Value` приводимым к `IEnumerable`, каждый из элементов которого, в свою очередь, тоже должен быть `IEnumerable`.
+Кроме того, в качестве значения параметра `bulk` передать объект реализующий `IBulkInsertEnumerable` - это уменьшит использование памяти и процессора внутри драйвера clickhouse.
 Это удобно при использовании такого синтаксиса:
 
 ```SQL

@@ -1,7 +1,5 @@
-using System;
-using System.IO;
-using ClickHouse.Ado.Impl.Data;
 //This may actually work with ZStdNet from NuGet
+
 #if false
 namespace ClickHouse.Ado.Impl.Compress
 {
@@ -42,7 +40,7 @@ namespace ClickHouse.Ado.Impl.Compress
             {
                 read += uncompressed.Read(cdata, read, compressedSize - read);
             } while (read < compressedSize);
-            var decomp=new ZstdNet.Decompressor();
+            var decomp = new ZstdNet.Decompressor();
             return new MemoryStream(decomp.Unwrap(cdata, uncompressedSize));
         }
 

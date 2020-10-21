@@ -1,8 +1,6 @@
-﻿namespace ClickHouse.Ado.Impl.Data
-{
-    internal enum Compression
-    {
+﻿namespace ClickHouse.Ado.Impl.Data {
+    internal enum Compression {
         Disable = 0,
-        Enable = 1,
+        Enable = 1
     }
 }

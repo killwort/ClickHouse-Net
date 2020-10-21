@@ -1,10 +1,9 @@
-﻿namespace ClickHouse.Isql
-{
-    public enum OutputFormat
-    {
+﻿namespace ClickHouse.Isql {
+    public enum OutputFormat {
         TSV,
         TSVWithHeader,
-        XML,
+
+        XML
         //JSON
     }
 }
