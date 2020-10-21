@@ -69,6 +69,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         private static readonly Regex NestedRegex = new Regex(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
         private static readonly Regex DecimalRegex = new Regex(@"^Decimal(((?<dlen>(32|64|128))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex DateTime64Regex = new Regex(@"^DateTime64\s*\(\s*(?<prec>\d+)\s*(,\s*'(?<tz>([^']|(\\'))*)'\s*)?\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex DateTimeRegex = new Regex(@"^DateTime\s*\('[^']|(\\')*'\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public virtual bool IsNullable => false;
         public abstract int Rows { get; }
 
@@ -106,6 +107,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
 
             m = DateTime64Regex.Match(name);
             if (m.Success) return new DateTime64ColumnType(int.Parse(m.Groups["prec"].Value), ProtocolFormatter.UnescapeStringValue(m.Groups["tz"].Value));
+            m = DateTimeRegex.Match(name);
+            if (m.Success) return new DateTimeColumnType();
             m = NestedRegex.Match(name);
             if (m.Success)
                 switch (m.Groups["outer"].Value) {
