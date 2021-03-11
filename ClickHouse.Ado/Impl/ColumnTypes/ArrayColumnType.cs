@@ -60,9 +60,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         public override object Value(int currentRow) {
             var start = currentRow == 0 ? 0 : Offsets.Data[currentRow - 1];
             var end = Offsets.Data[currentRow];
-            var rv = new object[end - start];
+            var rv = Array.CreateInstance(InnerType.CLRType, (int)(end - start));
             for (var i = start; i < end; i++)
-                rv[i - start] = InnerType.Value((int) i);
+                rv.SetValue(InnerType.Value((int)i), (int)(i - start));
             return rv;
         }
 
