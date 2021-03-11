@@ -118,6 +118,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                 switch (m.Groups["outer"].Value) {
                     case "Nullable":
                         return new NullableColumnType(Create(m.Groups["inner"].Value));
+                    case "LowCardinality":
+                        return new LowCardinalityColumnType(Create(m.Groups["inner"].Value));
                     case "Array":
                         if (m.Groups["inner"].Value == "Null")
                             return new ArrayColumnType(new NullableColumnType(new SimpleColumnType<byte>()));

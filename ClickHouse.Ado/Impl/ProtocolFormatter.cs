@@ -305,8 +305,8 @@ namespace ClickHouse.Ado.Impl {
             return rv;
         }
 
-        public byte[] ReadBytes(int i) {
-            var bytes = new byte[i];
+        public byte[] ReadBytes(int i, int size=-1) {
+            var bytes = new byte[size == -1 ? i : size];
             var read = 0;
             var cur = 0;
             var networkStream = _ioStream as NetworkStream ?? (_ioStream as UnclosableStream)?.BaseStream as NetworkStream;
