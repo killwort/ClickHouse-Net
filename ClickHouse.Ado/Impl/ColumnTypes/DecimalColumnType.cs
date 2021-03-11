@@ -16,7 +16,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
         public DecimalColumnType(uint length, uint precision) {
             _length = length;
             _precision = precision;
-            if (_length >= 28)
+            if (_length - precision >= 28)
                 throw new ClickHouseException("Decimals with length >= 28 are not supported (.NET framework decimal range limit)");
             if (length <= 9)
                 _byteLength = 4;

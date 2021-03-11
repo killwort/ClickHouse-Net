@@ -132,6 +132,8 @@ namespace ClickHouse.Ado {
             Formatter.Handshake(ConnectionSettings);
         }
 
+        public ServerInfo ServerInfo => Formatter.ServerInfo;
+
         public string ConnectionString { get => ConnectionSettings.ToString(); set => ConnectionSettings = new ClickHouseConnectionSettings(value); }
 
         public int ConnectionTimeout { get; set; } = 10000;

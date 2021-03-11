@@ -39,6 +39,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             {"Decimal64", "Decimal64"},
             {"Decimal32", "Decimal32"},
             {"Decimal128", "Decimal128"},
+            {"Decimal256", "Decimal256"},
             {"Date", "Date"},
             {"DateTime", "DateTime"}
         };
@@ -67,7 +68,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
 
         private static readonly Regex FixedStringRegex = new Regex(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex NestedRegex = new Regex(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
-        private static readonly Regex DecimalRegex = new Regex(@"^Decimal(((?<dlen>(32|64|128))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex DecimalRegex = new Regex(@"^Decimal(((?<dlen>(32|64|128|256))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex DateTime64Regex = new Regex(@"^DateTime64\s*\(\s*(?<prec>\d+)\s*(,\s*'(?<tz>([^']|(\\'))*)'\s*)?\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex DateTimeRegex = new Regex(@"^DateTime\s*\('[^']|(\\')*'\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public virtual bool IsNullable => false;
@@ -95,6 +96,9 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                             break;
                         case "128":
                             len = 38;
+                            break;
+                        case "256":
+                            len = 76;
                             break;
                         default:
                             throw new ClickHouseException($"Invalid Decimal bit-length {m.Groups["dlen"].Value}");
