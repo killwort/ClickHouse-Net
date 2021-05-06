@@ -100,6 +100,11 @@ namespace ClickHouse.Ado.Impl {
                                ClientInfo clientInfo,
                                IEnumerable<Block> xtables,
                                bool noData) {
+            if (_connectionSettings.LogQueryToStdout)
+            {
+                Console.WriteLine("===========================================");
+                Console.WriteLine(sql);
+            }
             WriteUInt((int) ClientMessageType.Query);
             WriteString("");
             if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithClientInfo) {
