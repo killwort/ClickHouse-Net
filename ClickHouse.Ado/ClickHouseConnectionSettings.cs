@@ -12,7 +12,7 @@ namespace ClickHouse.Ado {
 #if CORE_FRAMEWORK
             Properties = typeof(ClickHouseConnectionSettings).GetTypeInfo().GetProperties().ToDictionary(x => x.Name, x => x);
 #else
-			Properties = typeof(ClickHouseConnectionSettings).GetProperties().ToDictionary(x => x.Name, x => x);
+            Properties = typeof(ClickHouseConnectionSettings).GetProperties().ToDictionary(x => x.Name, x => x);
 #endif
         }
 
@@ -76,6 +76,7 @@ namespace ClickHouse.Ado {
         public int MaxCompressBufferSize { get; set; }
 
         // queries settings
+        public bool LogQueryToStdout { get; set; }
         public int MaxParallelReplicas { get; set; }
         public string TotalsMode { get; set; }
         public string QuotaKey { get; set; }
