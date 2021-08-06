@@ -6,7 +6,7 @@
     <Authors>Andrey Zakharov</Authors>
     <Version>1.3.1</Version>
 
-    <TargetFrameworks>net461;netstandard1.5;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>ClickHouse.Ado</AssemblyName>
 
@@ -14,7 +14,6 @@
     <PackageTags>ClickHouse;connector;ado.net;netstandard;netcore;net45</PackageTags>
     <PackageProjectUrl>https://github.com/killwort/ClickHouse-Net</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/killwort/ClickHouse-Net/blob/master/LICENSE</PackageLicenseUrl>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.5' ">1.6.1</NetStandardImplicitPackageVersion>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard2.0' ">2.0</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
@@ -46,17 +45,14 @@ del /q $(SolutionDir).lock
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <DefineConstants>$(DefineConstants);FRAMEWORK461;CLASSIC_FRAMEWORK</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' ">
-    <DefineConstants>$(DefineConstants);NETSTANDARD15;CORE_FRAMEWORK</DefineConstants>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);NETSTANDARD20;CORE_FRAMEWORK</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard1.5' or '$(TargetFramework)' == 'netstandard2.0'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <DocumentationFile />
     <NoWarn>1701;1702;1705;CS1591;CS1587;</NoWarn>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.5' or '$(TargetFramework)' == 'netstandard2.0' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
   </ItemGroup>
