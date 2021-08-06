@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Data;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using ClickHouse.Ado.Impl;
 using ClickHouse.Ado.Impl.Data;
 
@@ -121,15 +123,32 @@ namespace ClickHouse.Ado {
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
             Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
             _netStream = new NetworkStream(_tcpClient.Client);
-            _stream = new UnclosableStream(_netStream);
+            var tmpStream = _netStream as Stream;
+            if (ConnectionSettings.SslEnabled)
+            {
+                var sslStream = new SslStream(_netStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate));
+                sslStream.AuthenticateAsClient(ConnectionSettings.Host);
+                //sslStream.AuthenticateAsClient(ConnectionSettings.Host);
+                tmpStream = sslStream;
+            }
+            _stream = new UnclosableStream(tmpStream);
             /*_reader=new BinaryReader(new UnclosableStream(_stream));
             _writer=new BinaryWriter(new UnclosableStream(_stream));*/
             var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(_stream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
+            Formatter = new ProtocolFormatter(_netStream, _stream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
             Formatter.Handshake(ConnectionSettings);
+        }
+        public bool ValidateServerCertificate(
+            object sender,
+            X509Certificate certificate,
+            X509Chain chain,
+            SslPolicyErrors sslPolicyErrors)
+        {
+            //TODO: Add check for custom sever Cerificates
+            return true; //Code shortened
         }
 
         public ServerInfo ServerInfo => Formatter.ServerInfo;

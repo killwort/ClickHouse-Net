@@ -37,11 +37,11 @@ namespace ClickHouse.Ado.Impl {
         /// </summary>
         private Stream _ioStream;
 
-        internal ProtocolFormatter(Stream baseStream, ClientInfo clientInfo, Func<bool> poll, int socketTimeout) {
+        internal ProtocolFormatter(Stream baseStream, Stream ioStream, ClientInfo clientInfo, Func<bool> poll, int socketTimeout) {
             _baseStream = baseStream;
             _poll = poll;
             _socketTimeout = socketTimeout;
-            _ioStream = _baseStream;
+            _ioStream = ioStream;
             /*reader = new BinaryReader(_baseStream,Encoding.UTF8);
             writer = new BinaryWriter(_baseStream);*/
             ClientInfo = clientInfo;

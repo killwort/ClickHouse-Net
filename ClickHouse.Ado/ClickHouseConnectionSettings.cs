@@ -72,6 +72,7 @@ namespace ClickHouse.Ado {
         public string Host { get; set; }
         public int Port { get; set; }
 
+        public bool SslEnabled { get; set; } = false;
         //additional
         public int MaxCompressBufferSize { get; set; }
 
