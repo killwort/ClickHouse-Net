@@ -15,12 +15,12 @@ IGNORECASE
 CHARACTERS
 letter='A'..'Z'+'a'..'z'+'_'.
 digit='0'..'9'.
-nonEscaped=ANY-"'"-"\\"-'"'.
+nonEscaped=ANY-"'"-"\\"-'"'-'`'.
 TOKENS
 ident=[letter{letter|digit}"."]letter{letter|digit}.
-identBackquoted="`" {nonEscaped|"\\\\"|"\\'"} "`".
+identBackquoted="`" {nonEscaped|"\\\\"|"\\'"|"\\`"} "`".
 identQuoted='"' {nonEscaped|"\\\\"|"\\'"} '"'.
-stringValue="'" {nonEscaped|"\\\\"|"\\'"} "'".
+stringValue="'" {nonEscaped|"\\\\"|"\\'"|"\\\""|"\\`"} "'".
 numValue=["-"|"+"]((digit{digit}["."{digit}])|("."digit{digit})).
 insert="INSERT".
 values="VALUES".
@@ -37,7 +37,7 @@ Identifier<. out string name .> (. name=null; .)
 
 Field<. out string name .> (. name=null; string prefix="", suffix=""; .)
 =
-	Identifier<out prefix> ["." Identifier<out suffix> (. suffix="."+suffix; .)]	(. name=prefix+suffix; .)	
+	Identifier<out prefix> ["." Identifier<out suffix> (. suffix="."+suffix; .)]	(. name=prefix+suffix; .)
 .
 
 FieldList<. out IEnumerable<string> elements .>	(. var rv=new List<string>(); elements=rv; string elem; IEnumerable<string> inner; .)
@@ -87,10 +87,10 @@ Insert	(.  .)
 	values
 	(
 		Parameter<out oneParam>
-		|	"(" 
-			ValueList<out valueList>	 
+		|	"("
+			ValueList<out valueList>
 			")"
 	)
-	{ ";" }	
+	{ ";" }
 .
 END Insert.

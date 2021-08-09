@@ -63,6 +63,7 @@
     <Compile Include="TestDateTime64Support.cs" />
     <Compile Include="TestGuidSupport.cs" />
     <Compile Include="Test_100_BulkArrayFirst.cs" />
+    <Compile Include="Test_119_StringEscaping.cs" />
     <Compile Include="Test_82_NullableFixedString.cs" />
     <Compile Include="Test_87_LowCardinality.cs" />
     <Compile Include="Test_90_CloseConnection.cs" />
