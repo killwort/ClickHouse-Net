@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using ClickHouse.Ado.Impl;
 using ClickHouse.Ado.Impl.Data;
@@ -121,14 +122,21 @@ namespace ClickHouse.Ado {
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
             Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
             _netStream = new NetworkStream(_tcpClient.Client);
-            _stream = new UnclosableStream(_netStream);
+            if (ConnectionSettings.Encrypt)
+            {
+                var sslStream = new SslStream(_netStream, true, new RemoteCertificateValidationCallback((_1, _2, _3, _4) => true));
+                sslStream.AuthenticateAsClient(ConnectionSettings.Host);
+                _stream = new UnclosableStream(sslStream);
+            }
+            else
+                _stream = new UnclosableStream(_netStream);
             /*_reader=new BinaryReader(new UnclosableStream(_stream));
             _writer=new BinaryWriter(new UnclosableStream(_stream));*/
             var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(_stream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
+            Formatter = new ProtocolFormatter(_netStream, _stream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
             Formatter.Handshake(ConnectionSettings);
         }
 

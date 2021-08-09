@@ -37,11 +37,11 @@ namespace ClickHouse.Ado.Impl {
         /// </summary>
         private Stream _ioStream;
 
-        internal ProtocolFormatter(Stream baseStream, ClientInfo clientInfo, Func<bool> poll, int socketTimeout) {
+        internal ProtocolFormatter(Stream baseStream, Stream wrappedStream, ClientInfo clientInfo, Func<bool> poll, int socketTimeout) {
             _baseStream = baseStream;
             _poll = poll;
             _socketTimeout = socketTimeout;
-            _ioStream = _baseStream;
+            _ioStream = wrappedStream;
             /*reader = new BinaryReader(_baseStream,Encoding.UTF8);
             writer = new BinaryWriter(_baseStream);*/
             ClientInfo = clientInfo;
@@ -100,6 +100,8 @@ namespace ClickHouse.Ado.Impl {
                                ClientInfo clientInfo,
                                IEnumerable<Block> xtables,
                                bool noData) {
+            if(_connectionSettings.Trace)
+                Trace.WriteLine($"Executing sql \"{sql}\"","ClickHouse.Ado");
             WriteUInt((int) ClientMessageType.Query);
             WriteString("");
             if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithClientInfo) {

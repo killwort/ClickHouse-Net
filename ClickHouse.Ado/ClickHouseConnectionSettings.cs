@@ -97,6 +97,10 @@ namespace ClickHouse.Ado {
         public int MaxBytesBeforeExternalGroupBy { get; set; }
         public int MaxBytesBeforeExternalSort { get; set; }
 
+        //client configuration
+        public bool Encrypt { get; set; } = false;
+        public bool Trace { get; set; } = false;
+
         private void SetValue(string name, string value) {
 #if CLASSIC_FRAMEWORK
             Properties[name].GetSetMethod()
