@@ -6,6 +6,10 @@ rules however this is intentional.
 А ещё есть описание по-русски, см. ниже.
 
 ## Important usage notes
+### SSL/TLS support
+In order to wrap your clickhouse connection in SSL/TLS tunnel you should enable is on your server first (`tcp_port_secure` setting in the config.xml) and add `Encrypt=True` to the connection string (do not forget to change port number).
+### Raw SQL debug output
+If you'd like to see all queries emitted by the driver to the server add `Trace=True` to the connection string and set up a .NET trace listener for the category `ClickHouse.Ado`.  
 ### No multiple queries
 ClickHouse engine does not support parsing multiple queries per on `IDbCommand.Execute*` roundtrip. Please split your queries into separately executed commands.
 
@@ -69,6 +73,10 @@ If you need some functionality or found a bug but unable to implement/fix it, pl
 .NET драйвер для [Yandex ClickHouse](http://clickhouse.yandex). В отличие от официального JDBC клиента этот драйвер не является обёрткой поверх ClickHouse HTTP, а реализует нативный протокол. Протокол (и части его реализации) нагло выдраны из исходников самого ClickHouse. В некоторых случаях этот драйвер ведёт себя не так, как обычные ADO.NET драйверы, это сделано намеренно и связано со спецификой ClickHouse.
 
 ## Прочти это перед использованием
+### Поддержка SSL/TLS
+Чтобы завернуть протокол кликхауса в SSL/TLS тунель надо, во-первых, включить SSL на сервере (настройка `tcp_port_secure` в config.xml), и, затем, добавить `Encrypt=True` в строку соединения (также не забыть сменить используемый номер порта).
+### Отладочный вывод SQL
+Если хочется видеть какие SQL драйвер посылает серверу, то в строку соединения надо добавить `Trace=True` и включить слушатель трассировки для категории `ClickHouse.Ado`.
 ### Нет поддержки нескольких запросов
 Движок ClickHouse не умеет обрабатывать несколько SQL запросов за один вызов `IDbCommand.Execute*`. Запросы надо разбивать на отдельные команды.
 
