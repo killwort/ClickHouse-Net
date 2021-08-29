@@ -21,8 +21,6 @@ namespace ClickHouse.Ado {
 
         public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
 
-        /*private BinaryReader _reader;
-        private BinaryWriter _writer;*/
         internal ProtocolFormatter Formatter { get; set; }
 
         public void Dispose() {
@@ -30,18 +28,6 @@ namespace ClickHouse.Ado {
         }
 
         public void Close() {
-            /*if (_reader != null)
-            {
-                _reader.Close();
-                _reader.Dispose();
-                _reader = null;
-            }
-            if (_writer != null)
-            {
-                _writer.Close();
-                _writer.Dispose();
-                _writer = null;
-            }*/
             if (_stream != null) {
 #if CLASSIC_FRAMEWORK
 				_stream.Close();
@@ -117,7 +103,6 @@ namespace ClickHouse.Ado {
             _tcpClient = new TcpClient();
             _tcpClient.ReceiveTimeout = ConnectionSettings.SocketTimeout;
             _tcpClient.SendTimeout = ConnectionSettings.SocketTimeout;
-            //_tcpClient.NoDelay = true;
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
             Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
@@ -130,8 +115,6 @@ namespace ClickHouse.Ado {
             }
             else
                 _stream = new UnclosableStream(_netStream);
-            /*_reader=new BinaryReader(new UnclosableStream(_stream));
-            _writer=new BinaryWriter(new UnclosableStream(_stream));*/
             var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();

@@ -42,8 +42,6 @@ namespace ClickHouse.Ado.Impl {
             _poll = poll;
             _socketTimeout = socketTimeout;
             _ioStream = wrappedStream;
-            /*reader = new BinaryReader(_baseStream,Encoding.UTF8);
-            writer = new BinaryWriter(_baseStream);*/
             ClientInfo = clientInfo;
         }
 
