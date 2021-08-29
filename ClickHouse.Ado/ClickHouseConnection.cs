@@ -8,8 +8,7 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado {
     public class ClickHouseConnection : IDbConnection {
-        private NetworkStream _netStream;
-        private Stream _stream;
+        private Stream _connectionStream;
 
         private TcpClient _tcpClient;
 
@@ -28,20 +27,12 @@ namespace ClickHouse.Ado {
         }
 
         public void Close() {
-            if (_stream != null) {
+            if (_connectionStream != null) {
 #if CLASSIC_FRAMEWORK
-				_stream.Close();
+                _connectionStream.Close();
 #endif
-                _stream.Dispose();
-                _stream = null;
-            }
-
-            if (_netStream != null) {
-#if CLASSIC_FRAMEWORK
-				_netStream.Close();
-#endif
-                _netStream.Dispose();
-                _netStream = null;
+                _connectionStream.Dispose();
+                _connectionStream = null;
             }
 
             if (_tcpClient != null) {
@@ -106,20 +97,19 @@ namespace ClickHouse.Ado {
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
             Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
-            _netStream = new NetworkStream(_tcpClient.Client);
+            var netStream = new NetworkStream(_tcpClient.Client);
             if (ConnectionSettings.Encrypt)
             {
-                var sslStream = new SslStream(_netStream, true, new RemoteCertificateValidationCallback((_1, _2, _3, _4) => true));
+                // TODO: Fix with proper certification validation
+                var sslStream = new SslStream(netStream, true, new RemoteCertificateValidationCallback((_1, _2, _3, _4) => true));
                 sslStream.AuthenticateAsClient(ConnectionSettings.Host);
-                _stream = new UnclosableStream(sslStream);
+                _connectionStream = sslStream;
             }
-            else
-                _stream = new UnclosableStream(_netStream);
             var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(_netStream, _stream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
+            Formatter = new ProtocolFormatter(_connectionStream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
             Formatter.Handshake(ConnectionSettings);
         }
 
