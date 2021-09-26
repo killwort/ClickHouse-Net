@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado {
     public class ClickHouseConnectionSettings {
@@ -69,6 +70,7 @@ namespace ClickHouse.Ado {
         public int TimeToLiveMillis { get; set; }
         public int DefaultMaxPerRoute { get; set; }
         public int MaxTotal { get; set; }
+        public string ClientName { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }
 

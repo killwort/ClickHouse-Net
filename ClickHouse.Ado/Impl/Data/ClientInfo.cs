@@ -32,7 +32,7 @@ namespace ClickHouse.Ado.Impl.Data {
         public string HttpUserAgent { get; set; }
         public string QuotaKey { get; set; }
 
-        internal void Write(ProtocolFormatter formatter) {
+        internal void Write(ProtocolFormatter formatter,string clientName) {
             formatter.WriteByte((byte) QueryKind);
             if (QueryKind == QueryKind.None) return;
             formatter.WriteString(InitialUser);
@@ -43,7 +43,7 @@ namespace ClickHouse.Ado.Impl.Data {
                 case Interface.Tcp:
                     formatter.WriteString(OsUser);
                     formatter.WriteString(ClientHostname);
-                    formatter.WriteString(ClientName);
+                    formatter.WriteString(string.IsNullOrWhiteSpace(clientName) ? ClientName : clientName);
                     formatter.WriteUInt(ClientVersionMajor);
                     formatter.WriteUInt(ClientVersionMinor);
                     formatter.WriteUInt(ClientRevision);

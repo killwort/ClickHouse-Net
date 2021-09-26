@@ -55,7 +55,7 @@ namespace ClickHouse.Ado.Impl {
             _compressor = connectionSettings.Compress ? Compressor.Create(connectionSettings) : null;
             WriteUInt((int) ClientMessageType.Hello);
 
-            WriteString(ClientInfo.ClientName);
+            WriteString(string.IsNullOrEmpty(connectionSettings.ClientName) ? ClientInfo.ClientName : connectionSettings.ClientName);
             WriteUInt(ClientInfo.ClientVersionMajor);
             WriteUInt(ClientInfo.ClientVersionMinor);
             WriteUInt(ClientInfo.ClientRevision);
@@ -110,7 +110,7 @@ namespace ClickHouse.Ado.Impl {
                 else
                     clientInfo.QueryKind = QueryKind.Secondary;
 
-                clientInfo.Write(this);
+                clientInfo.Write(this,_connectionSettings.ClientName);
             }
 
             var compressionMethod = _compressor != null ? _compressor.Method : CompressionMethod.Lz4;
