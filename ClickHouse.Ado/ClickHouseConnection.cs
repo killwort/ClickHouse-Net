@@ -81,7 +81,9 @@ namespace ClickHouse.Ado {
             } catch {
             }
 
-            if (state.Client.Connected && state.Success)
+            var isConnected = state.Client?.Client != null ? state.Client.Connected : false;
+
+            if (isConnected && state.Success)
                 return;
 
             state.Client.Close();
