@@ -4,9 +4,9 @@
     <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
     <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
     <Authors>Andrey Zakharov</Authors>
-    <Version>1.4.0</Version>
+    <Version>1.4.2</Version>
 
-    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net461;net5.0;netstandard2.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>ClickHouse.Ado</AssemblyName>
 
@@ -46,6 +46,9 @@ del /q $(SolutionDir).lock
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <DefineConstants>$(DefineConstants);NETSTANDARD20;CORE_FRAMEWORK</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
+    <DefineConstants>$(DefineConstants);NET5;CORE_FRAMEWORK</DefineConstants>
+  </PropertyGroup>  
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <DocumentationFile />
     <NoWarn>1701;1702;1705;CS1591;CS1587;</NoWarn>
@@ -54,7 +57,8 @@ del /q $(SolutionDir).lock
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
   </ItemGroup>
-
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' ">
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="lz4net" Version="1.0.15.93" />
   </ItemGroup>
