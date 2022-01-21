@@ -105,6 +105,7 @@ namespace ClickHouse.Ado {
                 sslStream.AuthenticateAsClient(ConnectionSettings.Host);
                 _connectionStream = sslStream;
             }
+            else _connectionStream = netStream;
             var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
