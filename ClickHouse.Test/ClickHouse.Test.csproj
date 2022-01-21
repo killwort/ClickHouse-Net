@@ -67,6 +67,7 @@
     <Compile Include="Test_82_NullableFixedString.cs" />
     <Compile Include="Test_87_LowCardinality.cs" />
     <Compile Include="Test_90_CloseConnection.cs" />
+    <Compile Include="Test_98_TZ.cs" />
     <Compile Include="Test_99_NegativeNumerics.cs" />
     <Compile Include="Test_84_DecimalSupport.cs" />
   </ItemGroup>

@@ -66,7 +66,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
                             "yyyy-MM-dd HH:mm:ss.fffffff"
                         },
                         null,
-                        DateTimeStyles.AssumeUniversal
+                        DateTimeStyles.AssumeLocal
                     )
                 };
             else

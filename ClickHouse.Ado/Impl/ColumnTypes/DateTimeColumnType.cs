@@ -40,9 +40,10 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
 
         public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) => "DateTime";
 
-        public override void ValueFromConst(Parser.ValueType val) {
+        public override void ValueFromConst(Parser.ValueType val)
+        {
             if (val.TypeHint == Parser.ConstType.String)
-                Data = new[] {DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(val.StringValue), "yyyy-MM-dd HH:mm:ss", null, DateTimeStyles.AssumeUniversal)};
+                Data = new[] { DateTime.ParseExact(ProtocolFormatter.UnescapeStringValue(val.StringValue), "yyyy-MM-dd HH:mm:ss", null, DateTimeStyles.AssumeLocal) };
             else
                 throw new InvalidCastException("Cannot convert numeric value to DateTime.");
         }
