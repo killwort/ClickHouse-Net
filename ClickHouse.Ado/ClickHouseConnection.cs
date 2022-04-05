@@ -12,6 +12,8 @@ namespace ClickHouse.Ado {
 
         private TcpClient _tcpClient;
 
+        private bool _isBroken;
+
         public ClickHouseConnection() { }
 
         public ClickHouseConnection(ClickHouseConnectionSettings settings) => ConnectionSettings = settings;
@@ -112,7 +114,7 @@ namespace ClickHouse.Ado {
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(_connectionStream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
+            Formatter = new ProtocolFormatter(this, _connectionStream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
             Formatter.Handshake(ConnectionSettings);
         }
 
@@ -128,7 +130,7 @@ namespace ClickHouse.Ado {
             Database = databaseName;
         }
 
-        public ConnectionState State => Formatter != null ? ConnectionState.Open : ConnectionState.Closed;
+        public ConnectionState State => Formatter != null ? _isBroken ? ConnectionState.Broken : ConnectionState.Open : ConnectionState.Closed;
 
         public IDbTransaction BeginTransaction() => throw new NotSupportedException();
 
@@ -139,5 +141,11 @@ namespace ClickHouse.Ado {
         public ClickHouseCommand CreateCommand() => new ClickHouseCommand(this);
 
         public ClickHouseCommand CreateCommand(string text) => new ClickHouseCommand(this, text);
+
+        internal void MaybeSetBroken(Exception exception)
+        {
+            if (exception is ClickHouseException) return;
+            _isBroken = true;
+        }
     }
 }

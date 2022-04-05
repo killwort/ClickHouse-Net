@@ -13,6 +13,8 @@ namespace ClickHouse.Ado.Impl {
     internal class ProtocolFormatter {
         private static readonly Regex NameRegex = new Regex("^[a-zA-Z_][0-9a-zA-Z_]*$", RegexOptions.Compiled);
 
+        private readonly ClickHouseConnection _owner;
+
         /// <summary>
         ///     Underlaying stream, usually NetworkStream.
         /// </summary>
@@ -35,7 +37,8 @@ namespace ClickHouse.Ado.Impl {
         /// </summary>
         private Stream _ioStream;
 
-        internal ProtocolFormatter(Stream baseStream, ClientInfo clientInfo, Func<bool> poll, int socketTimeout) {
+        internal ProtocolFormatter(ClickHouseConnection owner, Stream baseStream, ClientInfo clientInfo, Func<bool> poll, int socketTimeout) {
+            _owner = owner;
             _baseStream = baseStream;
             _ioStream = baseStream;
             _poll = poll;
@@ -84,8 +87,10 @@ namespace ClickHouse.Ado.Impl {
                     DisplayName = serverDn
                 };
             } else if (serverHello == (int) ServerMessageType.Exception) {
+                _owner.MaybeSetBroken(null);
                 ReadAndThrowException();
             } else {
+                _owner.MaybeSetBroken(null);
                 throw new FormatException($"Bad message type {serverHello:X} received from server.");
             }
         }
@@ -96,80 +101,132 @@ namespace ClickHouse.Ado.Impl {
                                ClientInfo clientInfo,
                                IEnumerable<Block> xtables,
                                bool noData) {
-            if(_connectionSettings.Trace)
-                Trace.WriteLine($"Executing sql \"{sql}\"","ClickHouse.Ado");
-            WriteUInt((int) ClientMessageType.Query);
-            WriteString("");
-            if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithClientInfo) {
-                if (clientInfo == null)
-                    clientInfo = ClientInfo;
-                else
-                    clientInfo.QueryKind = QueryKind.Secondary;
-
-                clientInfo.Write(this,_connectionSettings.ClientName);
-            }
-
-            var compressionMethod = _compressor != null ? _compressor.Method : CompressionMethod.Lz4;
-            if (settings != null) {
-                settings.Write(this);
-                compressionMethod = settings.Get<CompressionMethod>("compression_method");
-            } else {
+            try
+            {
+                if (_connectionSettings.Trace)
+                    Trace.WriteLine($"Executing sql \"{sql}\"", "ClickHouse.Ado");
+                WriteUInt((int)ClientMessageType.Query);
                 WriteString("");
-            }
+                if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithClientInfo)
+                {
+                    if (clientInfo == null)
+                        clientInfo = ClientInfo;
+                    else
+                        clientInfo.QueryKind = QueryKind.Secondary;
 
-            WriteUInt((int) stage);
-            WriteUInt(_connectionSettings.Compress ? (int) compressionMethod : 0);
-            WriteString(sql);
-            _baseStream.Flush();
+                    clientInfo.Write(this, _connectionSettings.ClientName);
+                }
 
-            if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithTemporaryTables && noData) {
-                new Block().Write(this);
+                var compressionMethod = _compressor != null ? _compressor.Method : CompressionMethod.Lz4;
+                if (settings != null)
+                {
+                    settings.Write(this);
+                    compressionMethod = settings.Get<CompressionMethod>("compression_method");
+                }
+                else
+                {
+                    WriteString("");
+                }
+
+                WriteUInt((int)stage);
+                WriteUInt(_connectionSettings.Compress ? (int)compressionMethod : 0);
+                WriteString(sql);
                 _baseStream.Flush();
-            }
 
-            if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithTemporaryTables) SendBlocks(xtables);
-        }
-
-        internal Block ReadSchema() {
-            var schema = new Response();
-            if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithColumnDefaultsMetadata) {
-                ReadPacket(schema);
-                if (schema.Type == ServerMessageType.TableColumns)
-                    ReadPacket(schema);
-            } else {
-                ReadPacket(schema);
-            }
-
-            return schema.Blocks.First();
-        }
-
-        internal void SendBlocks(IEnumerable<Block> blocks) {
-            if (blocks != null)
-                foreach (var block in blocks) {
-                    block.Write(this);
+                if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithTemporaryTables && noData)
+                {
+                    new Block().Write(this);
                     _baseStream.Flush();
                 }
 
-            new Block().Write(this);
-            _baseStream.Flush();
+                if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithTemporaryTables) SendBlocks(xtables);
+            }
+            catch (Exception e)
+            {
+                _owner.MaybeSetBroken(e);
+                throw;
+            }
         }
 
-        internal Response ReadResponse() {
-            var rv = new Response();
-            while (true) {
-                if (!_poll()) continue;
-                if (!ReadPacket(rv)) break;
-            }
+        internal Block ReadSchema() {
+            try
+            {
+                var schema = new Response();
+                if (ServerInfo.Build >= ProtocolCaps.DbmsMinRevisionWithColumnDefaultsMetadata)
+                {
+                    ReadPacket(schema);
+                    if (schema.Type == ServerMessageType.TableColumns)
+                        ReadPacket(schema);
+                }
+                else
+                {
+                    ReadPacket(schema);
+                }
 
-            return rv;
+                return schema.Blocks.First();
+            }
+            catch (Exception e)
+            {
+                _owner.MaybeSetBroken(e);
+                throw;
+            }
+        }
+
+        internal void SendBlocks(IEnumerable<Block> blocks)
+        {
+            try
+            {
+                if (blocks != null)
+                    foreach (var block in blocks)
+                    {
+                        block.Write(this);
+                        _baseStream.Flush();
+                    }
+
+                new Block().Write(this);
+                _baseStream.Flush();
+            }
+            catch (Exception e)
+            {
+                _owner.MaybeSetBroken(e);
+                throw;
+            }
+        }
+
+        internal Response ReadResponse()
+        {
+            try
+            {
+                var rv = new Response();
+                while (true)
+                {
+                    if (!_poll()) continue;
+                    if (!ReadPacket(rv)) break;
+                }
+
+                return rv;
+            }
+            catch (Exception e)
+            {
+                _owner.MaybeSetBroken(e);
+                throw;
+            }
         }
 
         internal Block ReadBlock() {
-            var rv = new Response();
-            while (ReadPacket(rv))
-                if (rv.Blocks.Any())
-                    return rv.Blocks.First();
-            return null;
+            try
+            {
+                var rv = new Response();
+                while (ReadPacket(rv))
+                    if (rv.Blocks.Any())
+                        return rv.Blocks.First();
+                return null;
+            }
+            catch (Exception e)
+            {
+                _owner.MaybeSetBroken(e);
+                throw;
+            }
         }
 
         internal bool ReadPacket(Response rv) {

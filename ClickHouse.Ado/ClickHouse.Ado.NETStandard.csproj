@@ -4,7 +4,7 @@
     <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
     <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
     <Authors>Andrey Zakharov</Authors>
-    <Version>1.4.2</Version>
+    <Version>1.4.3</Version>
 
     <TargetFrameworks>net461;net5.0;netstandard2.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -48,7 +48,7 @@ del /q $(SolutionDir).lock
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
     <DefineConstants>$(DefineConstants);NET5;CORE_FRAMEWORK</DefineConstants>
-  </PropertyGroup>  
+  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <DocumentationFile />
     <NoWarn>1701;1702;1705;CS1591;CS1587;</NoWarn>
