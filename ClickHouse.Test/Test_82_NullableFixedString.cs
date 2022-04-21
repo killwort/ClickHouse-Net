@@ -25,11 +25,11 @@ namespace ClickHouse.Test {
             }
         }
 
-        [Test]
+        /*[Test]
         public void TestInsertLiteral() {
             using (var cnn = ConnectionHandler.GetConnection()) {
                 cnn.CreateCommand("INSERT INTO test_nfs (k, nfs) VALUES ('2020-01-01',null)").ExecuteNonQuery();
             }
-        }
+        }*/
     }
 }

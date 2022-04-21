@@ -70,6 +70,7 @@
     <Compile Include="Test_98_TZ.cs" />
     <Compile Include="Test_99_NegativeNumerics.cs" />
     <Compile Include="Test_84_DecimalSupport.cs" />
+    <Compile Include="Test_N_Tuples.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

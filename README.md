@@ -4,7 +4,8 @@ rules however this is intentional.
 
 
 А ещё есть описание по-русски, см. ниже.
-
+## Breaking changes
+v.1.5.1: Introduced new way to handle Clickhouse's `Tuple` type. Now values are read as `System.Tuple<>` instead of `System.Object[]`. That change made possible reading of `Array(Tuple(...))` typed values.
 ## Important usage notes
 ### SSL/TLS support
 In order to wrap your clickhouse connection in SSL/TLS tunnel you should enable is on your server first (`tcp_port_secure` setting in the config.xml) and add `Encrypt=True` to the connection string (do not forget to change port number).
@@ -72,6 +73,8 @@ If you need some functionality or found a bug but unable to implement/fix it, pl
 # ClickHouse.ADO по-русски
 .NET драйвер для [Yandex ClickHouse](http://clickhouse.yandex). В отличие от официального JDBC клиента этот драйвер не является обёрткой поверх ClickHouse HTTP, а реализует нативный протокол. Протокол (и части его реализации) нагло выдраны из исходников самого ClickHouse. В некоторых случаях этот драйвер ведёт себя не так, как обычные ADO.NET драйверы, это сделано намеренно и связано со спецификой ClickHouse.
 
+## Важные изменения
+v.1.5.1. Изменён формат чтения/записи Clickhouse типа `Tuple`. Теперь значения читаются как `System.Tuple<>` вместо используемого ранее `System.Object[]`. Это изменение позволяет читать колонки типа `Array(Tuple(...))`, что раньше было не возможно из-за ошибок.
 ## Прочти это перед использованием
 ### Поддержка SSL/TLS
 Чтобы завернуть протокол кликхауса в SSL/TLS тунель надо, во-первых, включить SSL на сервере (настройка `tcp_port_secure` в config.xml), и, затем, добавить `Encrypt=True` в строку соединения (также не забыть сменить используемый номер порта).
