@@ -61,6 +61,7 @@
     <Compile Include="ConnectionHandler.cs" />
     <Compile Include="SimpleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestArraySupport.cs" />
     <Compile Include="TestDate32Support.cs" />
     <Compile Include="TestDateTime64Support.cs" />
     <Compile Include="TestGuidSupport.cs" />
