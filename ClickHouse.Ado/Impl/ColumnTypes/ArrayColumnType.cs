@@ -26,7 +26,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             Offsets.Read(formatter, rows);
             _outerRows = rows;
             var totalRows = Offsets.Data.Last();
-            InnerType.Read(formatter, (int) totalRows);
+            if (totalRows == 0) return;
+            InnerType.Read(formatter, (int)totalRows);
         }
 
         public override void ValueFromConst(Parser.ValueType val) {
