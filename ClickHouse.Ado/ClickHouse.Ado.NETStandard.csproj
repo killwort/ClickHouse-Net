@@ -4,7 +4,7 @@
     <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
     <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
     <Authors>Andrey Zakharov</Authors>
-    <Version>1.5.2</Version>
+    <Version>1.5.3</Version>
 
     <TargetFrameworks>net461;net5.0;netstandard2.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
