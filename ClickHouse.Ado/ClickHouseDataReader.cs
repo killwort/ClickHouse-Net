@@ -114,7 +114,16 @@ namespace ClickHouse.Ado {
 
         public bool NextResult() {
             _currentRow = -1;
-            return (_currentBlock = _clickHouseConnection.Formatter.ReadBlock()) != null;
+
+            try
+            {
+                _currentBlock = _clickHouseConnection.Formatter.ReadBlock();
+            }
+            catch (Exception ex) {
+                _currentBlock = null;
+                throw;
+            }
+            return _currentBlock != null;
         }
 
         public bool Read() {
