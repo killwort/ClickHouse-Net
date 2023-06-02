@@ -64,7 +64,8 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             {"String", typeof(StringColumnType)},
             {"Null", typeof(NullColumnType)},
             {GuidColumnType.UuidColumnTypeName, typeof(GuidColumnType)},
-            {"Nothing", typeof(NullColumnType)}
+            {"Nothing", typeof(NullColumnType)},
+            {"Bool", typeof(BooleanColumnType)}
         };
 
         private static readonly Regex FixedStringRegex = new Regex(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
