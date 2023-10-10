@@ -1,20 +1,22 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings {
-    internal class TimeSpanSettingValue : SettingValue {
-        public TimeSpanSettingValue(int seconds) => Value = TimeSpan.FromSeconds(seconds);
+namespace ClickHouse.Ado.Impl.Settings; 
 
-        public TimeSpanSettingValue(TimeSpan value) => Value = value;
+internal class TimeSpanSettingValue : SettingValue {
+    public TimeSpanSettingValue(int seconds) => Value = TimeSpan.FromSeconds(seconds);
 
-        public TimeSpan Value { get; set; }
+    public TimeSpanSettingValue(TimeSpan value) => Value = value;
 
-        protected internal override void Write(ProtocolFormatter formatter) => formatter.WriteUInt((long) Value.TotalSeconds);
+    public TimeSpan Value { get; set; }
 
-        internal override T As<T>() {
-            if (typeof(T) != typeof(TimeSpan)) throw new InvalidCastException();
-            return (T) (object) Value;
-        }
+    protected internal override Task Write(ProtocolFormatter formatter, CancellationToken cToken) => formatter.WriteUInt((long)Value.TotalSeconds, cToken);
 
-        internal override object AsValue() => Value;
+    internal override T As<T>() {
+        if (typeof(T) != typeof(TimeSpan)) throw new InvalidCastException();
+        return (T)(object)Value;
     }
+
+    internal override object AsValue() => Value;
 }

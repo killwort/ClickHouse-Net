@@ -1,25 +1,27 @@
-﻿using ClickHouse.Ado.Impl.ColumnTypes;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using ClickHouse.Ado.Impl.ColumnTypes;
 
-namespace ClickHouse.Ado.Impl.Data {
-    internal class ColumnInfo {
-        public string Name { get; set; }
-        public ColumnType Type { get; set; }
+namespace ClickHouse.Ado.Impl.Data; 
 
-        internal void Write(ProtocolFormatter formatter, int rows) {
-            formatter.WriteString(Name);
-            formatter.WriteString(Type.AsClickHouseType(ClickHouseTypeUsageIntent.ColumnInfo));
+internal class ColumnInfo {
+    public string Name { get; set; }
+    public ColumnType Type { get; set; }
 
-            if (rows > 0)
-                Type.Write(formatter, rows);
-        }
+    internal async Task Write(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        await formatter.WriteString(Name, cToken);
+        await formatter.WriteString(Type.AsClickHouseType(ClickHouseTypeUsageIntent.ColumnInfo), cToken);
 
-        public static ColumnInfo Read(ProtocolFormatter formatter, int rows) {
-            var rv = new ColumnInfo();
-            rv.Name = formatter.ReadString();
-            rv.Type = ColumnType.Create(formatter.ReadString());
-            if (rows > 0)
-                rv.Type.Read(formatter, rows);
-            return rv;
-        }
+        if (rows > 0)
+            await Type.Write(formatter, rows, cToken);
+    }
+
+    public static async Task<ColumnInfo> Read(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        var rv = new ColumnInfo();
+        rv.Name = await formatter.ReadString(cToken);
+        rv.Type = ColumnType.Create(await formatter.ReadString(cToken));
+        if (rows > 0)
+            await rv.Type.Read(formatter, rows, cToken);
+        return rv;
     }
 }

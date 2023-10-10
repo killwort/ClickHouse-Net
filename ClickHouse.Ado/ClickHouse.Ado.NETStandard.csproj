@@ -1,65 +1,38 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
-    <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
-    <Authors>Andrey Zakharov</Authors>
-    <Version>1.5.5-no-polling-on-tls</Version>
+    <PropertyGroup>
+        <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
+        <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
+        <Authors>Andrey Zakharov</Authors>
+        <Version>2.0.0-preview</Version>
 
-    <TargetFrameworks>net461;net5.0;netstandard2.0</TargetFrameworks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyName>ClickHouse.Ado</AssemblyName>
+        <TargetFrameworks>net7.0</TargetFrameworks>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <AssemblyName>ClickHouse.Ado</AssemblyName>
 
-    <PackageId>ClickHouse.Ado</PackageId>
-    <PackageTags>ClickHouse;connector;ado.net;netstandard;netcore;net45</PackageTags>
-    <PackageProjectUrl>https://github.com/killwort/ClickHouse-Net</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/killwort/ClickHouse-Net/blob/master/LICENSE</PackageLicenseUrl>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard2.0' ">2.0</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <RootNamespace>ClickHouse.Ado</RootNamespace>
-    <PreBuildEvent>if exist $(SolutionDir).lock goto end
-echo &gt; $(SolutionDir).lock
-for /d %%D in ("$(SolutionDir)ClickHouse.Ado\Impl\ATG\*.*") DO $(SolutionDir)Coco.exe %%D\%%~nD.atg -o %%D -frames %%D\..\
-del /q $(SolutionDir).lock
-:end</PreBuildEvent>
-  </PropertyGroup>
+        <PackageId>ClickHouse.Ado</PackageId>
+        <PackageTags>ClickHouse;connector;ado.net;netcore</PackageTags>
+        <PackageProjectUrl>https://github.com/killwort/ClickHouse-Net</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/killwort/ClickHouse-Net/blob/master/LICENSE</PackageLicenseUrl>
+        <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+        <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+        <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+        <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+        <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
+        <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+        <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+        <RootNamespace>ClickHouse.Ado</RootNamespace>
+        <PreBuildEvent>if exist $(SolutionDir).lock goto end
+            echo &gt; $(SolutionDir).lock
+            for /d %%D in ("$(SolutionDir)ClickHouse.Ado\Impl\ATG\*.*") DO $(SolutionDir)Coco.exe %%D\%%~nD.atg -o %%D -frames %%D\..\
+            del /q $(SolutionDir).lock
+            :end
+        </PreBuildEvent>
+        <DefineConstants>$(DefineConstants);NET5;CORE_FRAMEWORK</DefineConstants>
+    </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
-    <Reference Include="System.Data" />
-    <Reference Include="System" />
-  </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
-   	<PackageTargetFallback>$(PackageTargetFallback);net4-client</PackageTargetFallback>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
-    <DefineConstants>$(DefineConstants);FRAMEWORK461;CLASSIC_FRAMEWORK</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <DefineConstants>$(DefineConstants);NETSTANDARD20;CORE_FRAMEWORK</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
-    <DefineConstants>$(DefineConstants);NET5;CORE_FRAMEWORK</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <DocumentationFile />
-    <NoWarn>1701;1702;1705;CS1591;CS1587;</NoWarn>
-  </PropertyGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' ">
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="lz4net" Version="1.0.15.93" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="lz4net" Version="1.0.15.93"/>
+    </ItemGroup>
 </Project>

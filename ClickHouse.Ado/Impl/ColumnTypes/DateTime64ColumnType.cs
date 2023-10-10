@@ -4,88 +4,86 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes {
-    internal class DateTime64ColumnType : DateColumnType {
-        private static readonly DateTime UnixTimeBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly double MaxUnixTimeSeconds = (DateTime.MaxValue - UnixTimeBase).TotalSeconds;
-        private readonly int _precision;
-        private readonly string _tz;
+namespace ClickHouse.Ado.Impl.ColumnTypes; 
 
-        public DateTime64ColumnType(int precision, string tz) {
-            _precision = precision;
-            _tz = tz;
-        }
+internal class DateTime64ColumnType : DateColumnType {
+    private static readonly DateTime UnixTimeBase = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly double MaxUnixTimeSeconds = (DateTime.MaxValue - UnixTimeBase).TotalSeconds;
+    private readonly int _precision;
+    private readonly string _tz;
 
-        public DateTime64ColumnType(DateTime[] data) : base(data) { }
+    public DateTime64ColumnType(int precision, string tz) {
+        _precision = precision;
+        _tz = tz;
+    }
 
-        public override int Rows => Data?.Length ?? 0;
+    public DateTime64ColumnType(DateTime[] data) : base(data) { }
 
-        internal override void Read(ProtocolFormatter formatter, int rows) {
-#if CLASSIC_FRAMEWORK
-            var itemSize = sizeof(ulong);
-#else
-            var itemSize = Marshal.SizeOf<ulong>();
-#endif
-            var bytes = formatter.ReadBytes(itemSize * rows);
-            var xdata = new ulong[rows];
-            Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);
-            var divisor = Math.Pow(10, -_precision);
-            Data = xdata.Select(x => ParseValue(x, divisor)).ToArray();
-        }
+    public override int Rows => Data?.Length ?? 0;
 
-        public override void Write(ProtocolFormatter formatter, int rows) {
-            Debug.Assert(Rows == rows, "Row count mismatch!");
-            var multiplier = Math.Pow(10, _precision);
-            foreach (var d in Data)
-                formatter.WriteBytes(BitConverter.GetBytes((ulong) ((d - UnixTimeBase).TotalSeconds * multiplier)));
-        }
+    internal override async Task Read(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        var itemSize = Marshal.SizeOf<ulong>();
+        var bytes = await formatter.ReadBytes(itemSize * rows, -1, cToken);
+        var xdata = new ulong[rows];
+        Buffer.BlockCopy(bytes, 0, xdata, 0, itemSize * rows);
+        var divisor = Math.Pow(10, -_precision);
+        Data = xdata.Select(x => ParseValue(x, divisor)).ToArray();
+    }
 
-        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) {
-            if (string.IsNullOrEmpty(_tz) || usageIntent == ClickHouseTypeUsageIntent.ColumnInfo)
-                return $"DateTime64({_precision})";
-            return $"DateTime64({_precision}, '{ProtocolFormatter.EscapeStringValue(_tz)}')";
-        }
+    public override async Task Write(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        Debug.Assert(Rows == rows, "Row count mismatch!");
+        var multiplier = Math.Pow(10, _precision);
+        foreach (var d in Data)
+            await formatter.WriteBytes(BitConverter.GetBytes((ulong)((d - UnixTimeBase).TotalSeconds * multiplier)), cToken);
+    }
 
-        public override void ValueFromConst(Parser.ValueType val) {
-            if (val.TypeHint == Parser.ConstType.String)
-                Data = new[] {
-                    DateTime.ParseExact(
-                        ProtocolFormatter.UnescapeStringValue(val.StringValue),
-                        new[] {
-                            "yyyy-MM-dd HH:mm:ss",
-                            "yyyy-MM-dd HH:mm:ss.f",
-                            "yyyy-MM-dd HH:mm:ss.ff",
-                            "yyyy-MM-dd HH:mm:ss.fff",
-                            "yyyy-MM-dd HH:mm:ss.ffff",
-                            "yyyy-MM-dd HH:mm:ss.fffff",
-                            "yyyy-MM-dd HH:mm:ss.ffffff",
-                            "yyyy-MM-dd HH:mm:ss.fffffff"
-                        },
-                        null,
-                        DateTimeStyles.AssumeLocal
-                    )
-                };
-            else
-                throw new InvalidCastException("Cannot convert numeric value to DateTime.");
-        }
+    public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) {
+        if (string.IsNullOrEmpty(_tz) || usageIntent == ClickHouseTypeUsageIntent.ColumnInfo)
+            return $"DateTime64({_precision})";
+        return $"DateTime64({_precision}, '{ProtocolFormatter.EscapeStringValue(_tz)}')";
+    }
 
-        public override void ValueFromParam(ClickHouseParameter parameter) {
-            if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset)
-                Data = new[] {(DateTime) Convert.ChangeType(parameter.Value, typeof(DateTime))};
-            else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to DateTime.");
-        }
+    public override void ValueFromConst(Parser.ValueType val) {
+        if (val.TypeHint == Parser.ConstType.String)
+            Data = new[] {
+                DateTime.ParseExact(
+                    ProtocolFormatter.UnescapeStringValue(val.StringValue),
+                    new[] {
+                        "yyyy-MM-dd HH:mm:ss",
+                        "yyyy-MM-dd HH:mm:ss.f",
+                        "yyyy-MM-dd HH:mm:ss.ff",
+                        "yyyy-MM-dd HH:mm:ss.fff",
+                        "yyyy-MM-dd HH:mm:ss.ffff",
+                        "yyyy-MM-dd HH:mm:ss.fffff",
+                        "yyyy-MM-dd HH:mm:ss.ffffff",
+                        "yyyy-MM-dd HH:mm:ss.fffffff"
+                    },
+                    null,
+                    DateTimeStyles.AssumeLocal
+                )
+            };
+        else
+            throw new InvalidCastException("Cannot convert numeric value to DateTime.");
+    }
 
-        private DateTime ParseValue(ulong value, double divisor) {
-            var dividedValue = value * divisor;
+    public override void ValueFromParam(ClickHouseParameter parameter) {
+        if (parameter.DbType == DbType.Date || parameter.DbType == DbType.DateTime || parameter.DbType == DbType.DateTime2 || parameter.DbType == DbType.DateTimeOffset)
+            Data = new[] { (DateTime)Convert.ChangeType(parameter.Value, typeof(DateTime)) };
+        else throw new InvalidCastException($"Cannot convert parameter with type {parameter.DbType} to DateTime.");
+    }
 
-            if (dividedValue > MaxUnixTimeSeconds)
-                return DateTime.MinValue;
+    private DateTime ParseValue(ulong value, double divisor) {
+        var dividedValue = value * divisor;
 
-            return UnixTimeBase.AddSeconds(dividedValue);
-        }
+        if (dividedValue > MaxUnixTimeSeconds)
+            return DateTime.MinValue;
+
+        return UnixTimeBase.AddSeconds(dividedValue);
     }
 }

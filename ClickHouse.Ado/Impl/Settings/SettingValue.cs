@@ -1,9 +1,12 @@
-﻿namespace ClickHouse.Ado.Impl.Settings {
-    internal abstract class SettingValue {
-        protected internal abstract void Write(ProtocolFormatter formatter);
+﻿using System.Threading;
+using System.Threading.Tasks;
 
-        internal abstract T As<T>();
+namespace ClickHouse.Ado.Impl.Settings; 
 
-        internal abstract object AsValue();
-    }
+internal abstract class SettingValue {
+    protected internal abstract Task Write(ProtocolFormatter formatter, CancellationToken cToken);
+
+    internal abstract T As<T>();
+
+    internal abstract object AsValue();
 }

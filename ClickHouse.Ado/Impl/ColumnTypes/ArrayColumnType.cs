@@ -3,90 +3,92 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes {
-    internal class ArrayColumnType : ColumnType {
-        private int _outerRows;
+namespace ClickHouse.Ado.Impl.ColumnTypes; 
 
-        public ArrayColumnType(ColumnType innerType) {
-            Offsets = new SimpleColumnType<ulong>();
-            InnerType = innerType;
-        }
+internal class ArrayColumnType : ColumnType {
+    private int _outerRows;
 
-        public ColumnType InnerType { get; }
-        public SimpleColumnType<ulong> Offsets { get; }
+    public ArrayColumnType(ColumnType innerType) {
+        Offsets = new SimpleColumnType<ulong>();
+        InnerType = innerType;
+    }
 
-        public override int Rows => _outerRows;
+    public ColumnType InnerType { get; }
+    public SimpleColumnType<ulong> Offsets { get; }
 
-        internal override Type CLRType => InnerType.CLRType.MakeArrayType();
+    public override int Rows => _outerRows;
 
-        internal override void Read(ProtocolFormatter formatter, int rows) {
-            Offsets.Read(formatter, rows);
-            _outerRows = rows;
-            var totalRows = Offsets.Data.Last();
-            if (totalRows == 0) return;
-            InnerType.Read(formatter, (int)totalRows);
-        }
+    internal override Type CLRType => InnerType.CLRType.MakeArrayType();
 
-        public override void ValueFromConst(Parser.ValueType val) {
-            if (val.TypeHint == Parser.ConstType.Array) {
-                InnerType.ValuesFromConst(val.ArrayValue.Select(x => Convert.ChangeType(x.StringValue, InnerType.CLRType)));
-                Offsets.ValueFromConst(
-                    new Parser.ValueType {
-                        TypeHint = Parser.ConstType.Number,
-                        StringValue = InnerType.Rows.ToString()
-                    }
-                );
-            } else {
-                throw new NotSupportedException();
-            }
-        }
+    internal override async Task Read(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        await Offsets.Read(formatter, rows, cToken);
+        _outerRows = rows;
+        var totalRows = Offsets.Data.Last();
+        if (totalRows == 0) return;
+        await InnerType.Read(formatter, (int)totalRows, cToken);
+    }
 
-        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) => $"Array({InnerType.AsClickHouseType(usageIntent)})";
-
-        public override void Write(ProtocolFormatter formatter, int rows) {
-            Offsets.Write(formatter, rows);
-            var totalRows = rows == 0 ? 0 : Offsets.Data.Last();
-            InnerType.Write(formatter, (int) totalRows);
-        }
-
-        public override void ValueFromParam(ClickHouseParameter parameter) {
-            if (parameter.DbType == 0 || parameter.DbType == DbType.Object)
-                ValuesFromConst(new[] {parameter.Value as IEnumerable});
-            else throw new NotSupportedException();
-        }
-
-        public override object Value(int currentRow) {
-            var start = currentRow == 0 ? 0 : Offsets.Data[currentRow - 1];
-            var end = Offsets.Data[currentRow];
-            var rv = Array.CreateInstance(InnerType.CLRType, (int)(end - start));
-            for (var i = start; i < end; i++)
-                rv.SetValue(InnerType.Value((int)i), (int)(i - start));
-            return rv;
-        }
-
-        public override long IntValue(int currentRow) => throw new InvalidCastException();
-
-        public override void ValuesFromConst(IEnumerable objects) {
-            var offsets = new List<ulong>();
-            var itemsPlain = new List<object>();
-            ulong currentOffset = 0;
-            foreach (var item in objects) {
-                ulong itemCount = 0;
-                foreach (var itemPart in (IEnumerable) item) {
-                    itemCount++;
-                    itemsPlain.Add(itemPart);
+    public override void ValueFromConst(Parser.ValueType val) {
+        if (val.TypeHint == Parser.ConstType.Array) {
+            InnerType.ValuesFromConst(val.ArrayValue.Select(x => Convert.ChangeType(x.StringValue, InnerType.CLRType)));
+            Offsets.ValueFromConst(
+                new Parser.ValueType {
+                    TypeHint = Parser.ConstType.Number,
+                    StringValue = InnerType.Rows.ToString()
                 }
+            );
+        } else {
+            throw new NotSupportedException();
+        }
+    }
 
-                currentOffset += itemCount;
-                offsets.Add(currentOffset);
+    public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) => $"Array({InnerType.AsClickHouseType(usageIntent)})";
+
+    public override async Task Write(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        await Offsets.Write(formatter, rows, cToken);
+        var totalRows = rows == 0 ? 0 : Offsets.Data.Last();
+        await InnerType.Write(formatter, (int)totalRows, cToken);
+    }
+
+    public override void ValueFromParam(ClickHouseParameter parameter) {
+        if (parameter.DbType == 0 || parameter.DbType == DbType.Object)
+            ValuesFromConst(new[] { parameter.Value as IEnumerable });
+        else throw new NotSupportedException();
+    }
+
+    public override object Value(int currentRow) {
+        var start = currentRow == 0 ? 0 : Offsets.Data[currentRow - 1];
+        var end = Offsets.Data[currentRow];
+        var rv = Array.CreateInstance(InnerType.CLRType, (int)(end - start));
+        for (var i = start; i < end; i++)
+            rv.SetValue(InnerType.Value((int)i), (int)(i - start));
+        return rv;
+    }
+
+    public override long IntValue(int currentRow) => throw new InvalidCastException();
+
+    public override void ValuesFromConst(IEnumerable objects) {
+        var offsets = new List<ulong>();
+        var itemsPlain = new List<object>();
+        ulong currentOffset = 0;
+        foreach (var item in objects) {
+            ulong itemCount = 0;
+            foreach (var itemPart in (IEnumerable)item) {
+                itemCount++;
+                itemsPlain.Add(itemPart);
             }
 
-            Offsets.ValuesFromConst(offsets);
-            InnerType.ValuesFromConst(itemsPlain);
-            _outerRows = offsets.Count;
+            currentOffset += itemCount;
+            offsets.Add(currentOffset);
         }
+
+        Offsets.ValuesFromConst(offsets);
+        InnerType.ValuesFromConst(itemsPlain);
+        _outerRows = offsets.Count;
     }
 }

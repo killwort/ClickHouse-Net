@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings {
-    internal class FloatSettingValue : SettingValue {
-        public FloatSettingValue(float value) => Value = value;
+namespace ClickHouse.Ado.Impl.Settings; 
 
-        public float Value { get; set; }
+internal class FloatSettingValue : SettingValue {
+    public FloatSettingValue(float value) => Value = value;
 
-        protected internal override void Write(ProtocolFormatter formatter) => formatter.WriteString(Value.ToString(CultureInfo.InvariantCulture));
+    public float Value { get; set; }
 
-        internal override T As<T>() {
-            if (typeof(T) != typeof(float)) throw new InvalidCastException();
-            return (T) (object) Value;
-        }
+    protected internal override Task Write(ProtocolFormatter formatter, CancellationToken cToken) => formatter.WriteString(Value.ToString(CultureInfo.InvariantCulture), cToken);
 
-        internal override object AsValue() => Value;
+    internal override T As<T>() {
+        if (typeof(T) != typeof(float)) throw new InvalidCastException();
+        return (T)(object)Value;
     }
+
+    internal override object AsValue() => Value;
 }

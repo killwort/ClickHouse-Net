@@ -1,73 +1,70 @@
 using System;
 using System.Collections;
-using System.Diagnostics;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes {
-    internal class LowCardinalityColumnType : ColumnType {
-        public LowCardinalityColumnType(ColumnType innerType) => InnerType = innerType;
+namespace ClickHouse.Ado.Impl.ColumnTypes; 
 
-        public override int Rows => Indices?.Length ?? 0;
-        internal override Type CLRType => InnerType.CLRType;
+internal class LowCardinalityColumnType : ColumnType {
+    private int _keySize;
 
-        public ColumnType InnerType { get; }
+    private int[] Indices;
+    public LowCardinalityColumnType(ColumnType innerType) => InnerType = innerType;
 
-        private int _keySize;
+    public override int Rows => Indices?.Length ?? 0;
+    internal override Type CLRType => InnerType.CLRType;
 
-        private int[] Indices;
+    public ColumnType InnerType { get; }
 
-        public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) => $"LowCardinality({InnerType.AsClickHouseType(usageIntent)})";
+    public override string AsClickHouseType(ClickHouseTypeUsageIntent usageIntent) => $"LowCardinality({InnerType.AsClickHouseType(usageIntent)})";
 
-        public override void Write(ProtocolFormatter formatter, int rows) {
-            // This is rather naive implementation of writing - without any deduplication, however who cares?
-            // Clickhouse server will re-deduplicate inserted values anyway.
-            formatter.WriteBytes(BitConverter.GetBytes(1L));
-            formatter.WriteBytes(BitConverter.GetBytes(1538L));
-            formatter.WriteBytes(BitConverter.GetBytes((long) rows));
-            InnerType.Write(formatter, rows);
-            formatter.WriteBytes(BitConverter.GetBytes((long) rows));
-            for (var i = 0; i < rows; i++)
-                formatter.WriteBytes(BitConverter.GetBytes(i));
-        }
+    public override async Task Write(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        // This is rather naive implementation of writing - without any deduplication, however who cares?
+        // Clickhouse server will re-deduplicate inserted values anyway.
+        await formatter.WriteBytes(BitConverter.GetBytes(1L), cToken);
+        await formatter.WriteBytes(BitConverter.GetBytes(1538L), cToken);
+        await formatter.WriteBytes(BitConverter.GetBytes((long)rows), cToken);
+        await InnerType.Write(formatter, rows, cToken);
+        await formatter.WriteBytes(BitConverter.GetBytes((long)rows), cToken);
+        for (var i = 0; i < rows; i++)
+            await formatter.WriteBytes(BitConverter.GetBytes(i), cToken);
+    }
 
-        internal override void Read(ProtocolFormatter formatter, int rows) {
-            var version = BitConverter.ToInt64(formatter.ReadBytes(8), 0);
-            if (version != 1)
-                throw new NotSupportedException("Invalid LowCardinality dictionary version");
-            var keyLength = BitConverter.ToInt64(formatter.ReadBytes(8), 0);
-            _keySize = 1 << (byte) (keyLength & 0xff);
-            if (_keySize < 0 || _keySize > 4) //LowCardinality with >4e9 keys? WTF???
-                throw new NotSupportedException("Invalid LowCardinality key size");
-            if (((keyLength >> 8) & 0xff) != 6)
-                throw new NotSupportedException("Invalid LowCardinality key flags");
-            var keyCount = BitConverter.ToInt64(formatter.ReadBytes(8), 0);
-            InnerType.Read(formatter, (int) keyCount);
-            var valueCount = BitConverter.ToInt64(formatter.ReadBytes(8), 0);
-            Indices = new int[rows];
-            for (var i = 0; i < rows; i++) {
-                Indices[i] = BitConverter.ToInt32(formatter.ReadBytes(_keySize, 4), 0);
-            }
-        }
+    internal override async Task Read(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        var version = BitConverter.ToInt64(await formatter.ReadBytes(8, -1, cToken), 0);
+        if (version != 1)
+            throw new NotSupportedException("Invalid LowCardinality dictionary version");
+        var keyLength = BitConverter.ToInt64(await formatter.ReadBytes(8, -1, cToken), 0);
+        _keySize = 1 << (byte)(keyLength & 0xff);
+        if (_keySize < 0 || _keySize > 4) //LowCardinality with >4e9 keys? WTF???
+            throw new NotSupportedException("Invalid LowCardinality key size");
+        if (((keyLength >> 8) & 0xff) != 6)
+            throw new NotSupportedException("Invalid LowCardinality key flags");
+        var keyCount = BitConverter.ToInt64(await formatter.ReadBytes(8, -1, cToken), 0);
+        await InnerType.Read(formatter, (int)keyCount, cToken);
+        var valueCount = BitConverter.ToInt64(await formatter.ReadBytes(8, -1, cToken), 0);
+        Indices = new int[rows];
+        for (var i = 0; i < rows; i++) Indices[i] = BitConverter.ToInt32(await formatter.ReadBytes(_keySize, 4, cToken), 0);
+    }
 
-        public override void ValueFromConst(Parser.ValueType val) {
-            InnerType.ValueFromConst(val);
-            Indices = new int[InnerType.Rows];
-        }
+    public override void ValueFromConst(Parser.ValueType val) {
+        InnerType.ValueFromConst(val);
+        Indices = new int[InnerType.Rows];
+    }
 
-        public override void ValueFromParam(ClickHouseParameter parameter) {
-            InnerType.ValueFromParam(parameter);
-            Indices = new int[InnerType.Rows];
-        }
+    public override void ValueFromParam(ClickHouseParameter parameter) {
+        InnerType.ValueFromParam(parameter);
+        Indices = new int[InnerType.Rows];
+    }
 
-        public override object Value(int currentRow) => InnerType.Value(Indices[currentRow]);
+    public override object Value(int currentRow) => InnerType.Value(Indices[currentRow]);
 
-        public override long IntValue(int currentRow) { return InnerType.IntValue(Indices[currentRow]); }
+    public override long IntValue(int currentRow) => InnerType.IntValue(Indices[currentRow]);
 
-        public override void ValuesFromConst(IEnumerable objects) {
-            InnerType.NullableValuesFromConst(objects);
-            Indices = new int[InnerType.Rows];
-        }
+    public override void ValuesFromConst(IEnumerable objects) {
+        InnerType.NullableValuesFromConst(objects);
+        Indices = new int[InnerType.Rows];
     }
 }

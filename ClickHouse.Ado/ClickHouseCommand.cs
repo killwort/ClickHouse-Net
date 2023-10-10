@@ -2,69 +2,88 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado {
-    public class ClickHouseCommand : IDbCommand {
-        private static readonly Regex ParamRegex = new Regex("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        public ClickHouseCommand() { }
+namespace ClickHouse.Ado; 
 
-        public ClickHouseCommand(ClickHouseConnection clickHouseConnection) => Connection = clickHouseConnection;
+public class ClickHouseCommand : DbCommand, IDbCommand {
+    private static readonly Regex ParamRegex = new("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    public ClickHouseCommand() { }
 
-        public ClickHouseCommand(ClickHouseConnection clickHouseConnection, string text) : this(clickHouseConnection) => CommandText = text;
+    public ClickHouseCommand(ClickHouseConnection clickHouseConnection) => Connection = clickHouseConnection;
 
-        public ClickHouseConnection Connection { get; set; }
-        public ClickHouseParameterCollection Parameters { get; } = new ClickHouseParameterCollection();
+    public ClickHouseCommand(ClickHouseConnection clickHouseConnection, string text) : this(clickHouseConnection) => CommandText = text;
 
-        public void Dispose() { }
+    protected override DbConnection DbConnection { get; set; }
+    protected override DbParameterCollection DbParameterCollection { get; }
+    protected override DbTransaction DbTransaction { get; set; }
+    public override bool DesignTimeVisible { get; set; }
+    public ClickHouseParameterCollection Parameters { get; } = new();
 
-        public void Prepare() => throw new NotSupportedException();
+    public void Dispose() { }
 
-        public void Cancel() => throw new NotSupportedException();
+    public override void Prepare() => throw new NotSupportedException();
 
-        IDbDataParameter IDbCommand.CreateParameter() => CreateParameter();
+    public override void Cancel() => throw new NotSupportedException();
 
-        IDbConnection IDbCommand.Connection { get => Connection; set => Connection = (ClickHouseConnection) value; }
-        public IDbTransaction Transaction { get; set; }
-        public CommandType CommandType { get; set; }
-        IDataParameterCollection IDbCommand.Parameters => Parameters;
-        public UpdateRowSource UpdatedRowSource { get; set; }
+    IDbDataParameter IDbCommand.CreateParameter() => new ClickHouseParameter();
 
-        public int ExecuteNonQuery() {
-            Execute(true, Connection);
-            return 0;
+    IDbConnection IDbCommand.Connection { get => Connection; set => Connection = (ClickHouseConnection)value; }
+    public IDbTransaction Transaction { get; set; }
+    public override CommandType CommandType { get; set; }
+    IDataParameterCollection IDbCommand.Parameters => Parameters;
+    public override UpdateRowSource UpdatedRowSource { get; set; }
+
+    public override int ExecuteNonQuery() => ExecuteNonQueryAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+
+    IDataReader IDbCommand.ExecuteReader() => ExecuteDbDataReader(CommandBehavior.Default);
+
+    IDataReader IDbCommand.ExecuteReader(CommandBehavior behavior) => ExecuteDbDataReader(behavior);
+
+    public override object ExecuteScalar() => ExecuteScalarAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+
+    public override string CommandText { get; set; }
+    public override int CommandTimeout { get; set; }
+    protected override DbParameter CreateDbParameter() => new ClickHouseParameter();
+    protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => ExecuteDbDataReaderAsync(behavior, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+
+    protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cToken) {
+        //For the weird folks who change Connection in between of Execute and actual reading the result.
+        var tempConnection = (ClickHouseConnection)DbConnection;
+        await Execute(false, tempConnection, cToken);
+        return new ClickHouseDataReader(tempConnection, behavior);
+    }
+
+    public override async Task<int> ExecuteNonQueryAsync(CancellationToken cToken) {
+        await Execute(true, (ClickHouseConnection)DbConnection, cToken);
+        return 0;
+    }
+
+    public override async Task<object> ExecuteScalarAsync(CancellationToken cToken) {
+        object result = null;
+        using (var reader = await ExecuteDbDataReaderAsync(CommandBehavior.Default, cToken)) {
+            do {
+                if (!await reader.ReadAsync(cToken)) continue;
+                result = reader.GetValue(0);
+            } while (await reader.NextResultAsync(cToken));
         }
 
-        public IDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
+        return result;
+    }
 
-        public IDataReader ExecuteReader(CommandBehavior behavior) {
-            var tempConnection = Connection;
-            Execute(false, tempConnection);
-            return new ClickHouseDataReader(tempConnection, behavior);
-        }
-
-        public object ExecuteScalar() {
-            object result = null;
-            using (var reader = ExecuteReader()) {
-                do {
-                    if (!reader.Read()) continue;
-                    result = reader.GetValue(0);
-                } while (reader.NextResult());
-            }
-
-            return result;
-        }
-
-        public string CommandText { get; set; }
-        public int CommandTimeout { get; set; }
-        public ClickHouseParameter CreateParameter() => new ClickHouseParameter();
-
-        private void Execute(bool readResponse, ClickHouseConnection connection) {
+    private async Task Execute(bool readResponse, ClickHouseConnection connection, CancellationToken cToken) {
+        if (CommandTimeout > 0)
+            cToken = CancellationTokenSource.CreateLinkedTokenSource(cToken, new CancellationTokenSource(TimeSpan.FromSeconds(CommandTimeout)).Token).Token;
+        await connection.DialogueLock.WaitAsync(cToken);
+        try {
             if (connection.State != ConnectionState.Open) throw new InvalidOperationException("Connection isn't open");
 
             var insertParser = new Parser(new Scanner(new MemoryStream(Encoding.UTF8.GetBytes(CommandText))));
@@ -83,15 +102,15 @@ namespace ClickHouse.Ado {
 
                 xText.Append(" VALUES");
 
-                connection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false);
-                var schema = connection.Formatter.ReadSchema();
+                await connection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false, cToken);
+                var schema = await connection.Formatter.ReadSchema(cToken);
                 if (insertParser.oneParam != null) {
                     if (Parameters[insertParser.oneParam].Value is IBulkInsertEnumerable bulkInsertEnumerable) {
                         var index = 0;
                         foreach (var col in schema.Columns)
                             col.Type.ValuesFromConst(bulkInsertEnumerable.GetColumnData(index++, col.Name, col.Type.AsClickHouseType(ClickHouseTypeUsageIntent.Generic)));
                     } else {
-                        var table = ((IEnumerable) Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
+                        var table = ((IEnumerable)Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
                         var colCount = table.First().Cast<object>().Count();
                         if (colCount != schema.Columns.Count)
                             throw new FormatException($"Column count in parameter table ({colCount}) doesn't match column count in schema ({schema.Columns.Count}).");
@@ -125,16 +144,17 @@ namespace ClickHouse.Ado {
                     }
                 }
 
-                connection.Formatter.SendBlocks(new[] {schema});
+                await connection.Formatter.SendBlocks(new[] { schema }, cToken);
             } else {
-                connection.Formatter.RunQuery(SubstituteParameters(CommandText), QueryProcessingStage.Complete, null, null, null, false);
+                await connection.Formatter.RunQuery(SubstituteParameters(CommandText), QueryProcessingStage.Complete, null, null, null, false, cToken);
             }
 
             if (!readResponse) return;
-            connection.Formatter.ReadResponse();
+            await connection.Formatter.ReadResponse(cToken);
+        } finally {
+            if (readResponse) connection.DialogueLock.Release();
         }
-
-        private string SubstituteParameters(string commandText) =>
-            ParamRegex.Replace(commandText, m => m.Groups["n"].Value == ":" || m.Groups["n"].Value == "@" ? m.Groups["n"].Value : Parameters[m.Groups["n"].Value].AsSubstitute());
     }
+
+    private string SubstituteParameters(string commandText) => ParamRegex.Replace(commandText, m => m.Groups["n"].Value == ":" || m.Groups["n"].Value == "@" ? m.Groups["n"].Value : Parameters[m.Groups["n"].Value].AsSubstitute());
 }

@@ -1,14 +1,14 @@
-﻿namespace ClickHouse.Ado.Impl.Data {
-    internal enum DistributedProductMode {
-        Deny = 0,
+﻿namespace ClickHouse.Ado.Impl.Data; 
 
-        /// Запретить
-        Local,
+internal enum DistributedProductMode {
+    Deny = 0,
 
-        /// Конвертировать в локальный запрос
-        Global,
+    /// Запретить
+    Local,
 
-        /// Конвертировать в глобальный запрос
-        Allow /// Разрешить
-    }
+    /// Конвертировать в локальный запрос
+    Global,
+
+    /// Конвертировать в глобальный запрос
+    Allow /// Разрешить
 }

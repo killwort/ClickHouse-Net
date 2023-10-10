@@ -1,18 +1,20 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings {
-    internal class StringSettingValue : SettingValue {
-        public StringSettingValue(string value) => Value = value;
+namespace ClickHouse.Ado.Impl.Settings; 
 
-        public string Value { get; set; }
+internal class StringSettingValue : SettingValue {
+    public StringSettingValue(string value) => Value = value;
 
-        protected internal override void Write(ProtocolFormatter formatter) => formatter.WriteString(Value);
+    public string Value { get; set; }
 
-        internal override T As<T>() {
-            if (typeof(T) != typeof(string)) throw new InvalidCastException();
-            return (T) (object) Value;
-        }
+    protected internal override Task Write(ProtocolFormatter formatter, CancellationToken cToken) => formatter.WriteString(Value, cToken);
 
-        internal override object AsValue() => Value;
+    internal override T As<T>() {
+        if (typeof(T) != typeof(string)) throw new InvalidCastException();
+        return (T)(object)Value;
     }
+
+    internal override object AsValue() => Value;
 }

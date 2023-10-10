@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace ClickHouse.Ado {
-    public class ClickHouseException : Exception {
-        public int Code;
+namespace ClickHouse.Ado; 
 
-        public string Name;
-        public string ServerStackTrace;
+public class ClickHouseException : Exception {
+    public int Code;
 
-        public ClickHouseException() { }
+    public string Name;
+    public string ServerStackTrace;
 
-        public ClickHouseException(string message) : base(message) { }
+    public ClickHouseException() { }
 
-        public ClickHouseException(string message, Exception innerException) : base(message, innerException) { }
-    }
+    public ClickHouseException(string message) : base(message) { }
+
+    public ClickHouseException(string message, Exception innerException) : base(message, innerException) { }
 }

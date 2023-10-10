@@ -1,18 +1,20 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings {
-    internal class BoolSettingValue : SettingValue {
-        public BoolSettingValue(bool value) => Value = value;
+namespace ClickHouse.Ado.Impl.Settings; 
 
-        public bool Value { get; set; }
+internal class BoolSettingValue : SettingValue {
+    public BoolSettingValue(bool value) => Value = value;
 
-        protected internal override void Write(ProtocolFormatter formatter) => formatter.WriteUInt(Value ? 1L : 0L);
+    public bool Value { get; set; }
 
-        internal override T As<T>() {
-            if (typeof(T) != typeof(bool)) throw new InvalidCastException();
-            return (T) (object) Value;
-        }
+    protected internal override Task Write(ProtocolFormatter formatter, CancellationToken cToken) => formatter.WriteUInt(Value ? 1L : 0L, cToken);
 
-        internal override object AsValue() => Value;
+    internal override T As<T>() {
+        if (typeof(T) != typeof(bool)) throw new InvalidCastException();
+        return (T)(object)Value;
     }
+
+    internal override object AsValue() => Value;
 }

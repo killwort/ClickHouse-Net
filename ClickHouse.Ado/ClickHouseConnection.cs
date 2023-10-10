@@ -1,153 +1,140 @@
 ﻿using System;
 using System.Data;
+using System.Data.Common;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
+using System.Threading.Tasks;
 using ClickHouse.Ado.Impl;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado {
-    public class ClickHouseConnection : IDbConnection {
-        private Stream _connectionStream;
+namespace ClickHouse.Ado; 
 
-        private TcpClient _tcpClient;
+public class ClickHouseConnection : DbConnection, IDbConnection {
+    private Stream _connectionStream;
 
-        private bool _isBroken;
+    private string _database;
 
-        public ClickHouseConnection() { }
+    private bool _isBroken;
 
-        public ClickHouseConnection(ClickHouseConnectionSettings settings) => ConnectionSettings = settings;
+    private TcpClient _tcpClient;
 
-        public ClickHouseConnection(string connectionString) => ConnectionSettings = new ClickHouseConnectionSettings(connectionString);
+    internal SemaphoreSlim DialogueLock = new(1, 1);
 
-        public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
+    public ClickHouseConnection() { }
 
-        internal ProtocolFormatter Formatter { get; set; }
+    public ClickHouseConnection(ClickHouseConnectionSettings settings) => ConnectionSettings = settings;
 
-        public void Dispose() {
-            if (_tcpClient != null) Close();
+    public ClickHouseConnection(string connectionString) => ConnectionSettings = new ClickHouseConnectionSettings(connectionString);
+
+    public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
+
+    internal ProtocolFormatter Formatter { get; set; }
+
+    public X509Certificate2 TlsClientCertificate { get; set; }
+
+    public ServerInfo ServerInfo => Formatter.ServerInfo;
+    public override string DataSource { get; }
+
+    public override string ServerVersion { get; }
+
+    public void Dispose() {
+        if (_tcpClient != null) Close();
+    }
+
+    public override void Close() {
+        if (Formatter != null) {
+            Formatter.Close();
+            Formatter = null;
         }
 
-        public void Close() {
-            if (_connectionStream != null) {
-#if CLASSIC_FRAMEWORK
-                _connectionStream.Close();
-#endif
-                _connectionStream.Dispose();
-                _connectionStream = null;
-            }
-
-            if (_tcpClient != null) {
-#if CLASSIC_FRAMEWORK
-				_tcpClient.Close();
-#else
-                _tcpClient.Dispose();
-#endif
-                _tcpClient = null;
-            }
-
-            if (Formatter != null) {
-                Formatter.Close();
-                Formatter = null;
-            }
+        if (_connectionStream != null) {
+            _connectionStream.Dispose();
+            _connectionStream = null;
         }
 
-
-
-        private void Connect(TcpClient client, string hostName, int port, int timeout) {
-#if CORE_FRAMEWORK
-            var cTask = client.ConnectAsync(hostName, port);
-            if (!cTask.Wait(timeout) || !client.Connected) {
-                cTask.ContinueWith(_ => client.Dispose());
-                throw new TimeoutException("Timeout waiting for connection.");
-            }
-#else
-            var state = new TcpClientState {
-                Client = client,
-                Success = true
-            };
-            var ar = client.BeginConnect(hostName, port, EndConnect, state);
-            state.Success = ar.AsyncWaitHandle.WaitOne(timeout, false);
-            if (!state.Success || !client.Connected)
-                throw new TimeoutException("Timeout waiting for connection.");
-}
-        private class TcpClientState
-        {
-            public TcpClient Client { get; set; }
-            public bool Success { get; set; }
+        if (_tcpClient != null) {
+            _tcpClient.Dispose();
+            _tcpClient = null;
         }
-        private void EndConnect(IAsyncResult ar) {
-            var state = (TcpClientState) ar.AsyncState;
-            try {
-                state.Client.EndConnect(ar);
-            } catch {
-            }
+    }
 
-            var isConnected = state.Client?.Client != null ? state.Client.Connected : false;
+    /// <inheritdoc />
+    public override void Open() => OpenAsync().Wait();
 
-            if (isConnected && state.Success)
-                return;
+    public override string ConnectionString { get => ConnectionSettings.ToString(); set => ConnectionSettings = new ClickHouseConnectionSettings(value); }
 
-            state.Client.Close();
+    public int ConnectionTimeout { get; set; } = 10000;
+    public override string Database => _database;
 
-#endif
-        }
+    public override void ChangeDatabase(string databaseName) {
+        CreateCommand("USE " + ProtocolFormatter.EscapeName(databaseName)).ExecuteNonQuery();
+        _database = databaseName;
+    }
 
-        public void Open() {
+    public override ConnectionState State => Formatter != null ? _isBroken ? ConnectionState.Broken : ConnectionState.Open : ConnectionState.Closed;
+
+    public IDbTransaction BeginTransaction() => throw new NotSupportedException();
+
+    public IDbTransaction BeginTransaction(IsolationLevel il) => throw new NotSupportedException();
+
+    IDbCommand IDbConnection.CreateCommand() => new ClickHouseCommand(this);
+
+    private async Task Connect(TcpClient client, string hostName, int port, CancellationToken cToken) {
+        await client.ConnectAsync(hostName, port, cToken);
+        cToken.ThrowIfCancellationRequested();
+        if (!client.Connected)
+            throw new InvalidOperationException("Connection failure");
+    }
+
+    /// <inheritdoc />
+    public override async Task OpenAsync(CancellationToken cToken) {
+        await DialogueLock.WaitAsync(cToken);
+        try {
             if (_tcpClient != null) throw new InvalidOperationException("Connection already open.");
             _tcpClient = new TcpClient();
             _tcpClient.ReceiveTimeout = ConnectionSettings.SocketTimeout;
             _tcpClient.SendTimeout = ConnectionSettings.SocketTimeout;
             _tcpClient.ReceiveBufferSize = ConnectionSettings.BufferSize;
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
-            Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
+            await Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, cToken);
             var netStream = new NetworkStream(_tcpClient.Client);
-            Func<bool> poller = () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead);
-            if (ConnectionSettings.Encrypt)
-            {
+            if (ConnectionSettings.Encrypt) {
                 // TODO: Fix with proper certification validation
-                var sslStream = new SslStream(netStream, true, new RemoteCertificateValidationCallback((_1, _2, _3, _4) => true));
-                sslStream.AuthenticateAsClient(ConnectionSettings.Host);
+                var sslStream = new SslStream(netStream, true, (_1, _2, _3, _4) => true);
+                var authOptions = new SslClientAuthenticationOptions();
+                authOptions.TargetHost = ConnectionSettings.Host;
+                if (TlsClientCertificate != null)
+                    (authOptions.ClientCertificates ??= new X509CertificateCollection()).Add(TlsClientCertificate);
+                await sslStream.AuthenticateAsClientAsync(authOptions, cToken);
                 _connectionStream = sslStream;
-                poller = () => true;
+            } else {
+                _connectionStream = netStream;
             }
-            else _connectionStream = netStream;
+
             var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(this, _connectionStream, ci, poller, ConnectionSettings.SocketTimeout);
-            Formatter.Handshake(ConnectionSettings);
+            Formatter = new ProtocolFormatter(this, _connectionStream, ci, ConnectionSettings.SocketTimeout);
+            await Formatter.Handshake(ConnectionSettings, cToken);
+            _database = ConnectionSettings.Database;
+        } finally {
+            DialogueLock.Release();
         }
+    }
 
-        public ServerInfo ServerInfo => Formatter.ServerInfo;
+    protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotSupportedException();
+    protected override DbCommand CreateDbCommand() => throw new NotImplementedException();
 
-        public string ConnectionString { get => ConnectionSettings.ToString(); set => ConnectionSettings = new ClickHouseConnectionSettings(value); }
+    public ClickHouseCommand CreateCommand() => new(this);
 
-        public int ConnectionTimeout { get; set; } = 10000;
-        public string Database { get; private set; }
+    public ClickHouseCommand CreateCommand(string text) => new(this, text);
 
-        public void ChangeDatabase(string databaseName) {
-            CreateCommand("USE " + ProtocolFormatter.EscapeName(databaseName)).ExecuteNonQuery();
-            Database = databaseName;
-        }
-
-        public ConnectionState State => Formatter != null ? _isBroken ? ConnectionState.Broken : ConnectionState.Open : ConnectionState.Closed;
-
-        public IDbTransaction BeginTransaction() => throw new NotSupportedException();
-
-        public IDbTransaction BeginTransaction(IsolationLevel il) => throw new NotSupportedException();
-
-        IDbCommand IDbConnection.CreateCommand() => new ClickHouseCommand(this);
-
-        public ClickHouseCommand CreateCommand() => new ClickHouseCommand(this);
-
-        public ClickHouseCommand CreateCommand(string text) => new ClickHouseCommand(this, text);
-
-        internal void MaybeSetBroken(Exception exception)
-        {
-            if (exception is ClickHouseException) return;
-            _isBroken = true;
-        }
+    internal void MaybeSetBroken(Exception exception) {
+        if (exception is ClickHouseException) return;
+        _isBroken = true;
     }
 }
