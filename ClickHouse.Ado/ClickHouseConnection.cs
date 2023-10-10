@@ -102,19 +102,21 @@ namespace ClickHouse.Ado {
             _tcpClient.SendBufferSize = ConnectionSettings.BufferSize;
             Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, ConnectionTimeout);
             var netStream = new NetworkStream(_tcpClient.Client);
+            Func<bool> poller = () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead);
             if (ConnectionSettings.Encrypt)
             {
                 // TODO: Fix with proper certification validation
                 var sslStream = new SslStream(netStream, true, new RemoteCertificateValidationCallback((_1, _2, _3, _4) => true));
                 sslStream.AuthenticateAsClient(ConnectionSettings.Host);
                 _connectionStream = sslStream;
+                poller = () => true;
             }
             else _connectionStream = netStream;
             var ci = new ClientInfo();
             ci.InitialAddress = ci.CurrentAddress = _tcpClient.Client.RemoteEndPoint;
             ci.PopulateEnvironment();
 
-            Formatter = new ProtocolFormatter(this, _connectionStream, ci, () => _tcpClient.Client.Poll(ConnectionSettings.SocketTimeout, SelectMode.SelectRead), ConnectionSettings.SocketTimeout);
+            Formatter = new ProtocolFormatter(this, _connectionStream, ci, poller, ConnectionSettings.SocketTimeout);
             Formatter.Handshake(ConnectionSettings);
         }
 

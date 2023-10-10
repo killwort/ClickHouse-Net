@@ -9,14 +9,14 @@ namespace ClickHouse.Isql {
             if (err != null)
                 Console.Error.WriteLine("Error: {0}", err);
             Console.Error.WriteLine(
-                "Usage: clickhouse.isql [-host <hostname>] [-port <port>] [-user <username>] [-pass <password>] [-db <database>] [-output {TSV|TSVWithHeader|XML}] [-coalesce <coalescing value>] <query>"
+                "Usage: clickhouse.isql [-host <hostname>] [-port <port>] [-user <username>] [-pass <password>] [-db <database>] [-output {TSV|TSVWithHeader|XML}] [-coalesce <coalescing value>] [-cstr <connection string>] <query>"
             );
             return -1;
         }
 
         private static int Main(string[] args) {
             string host = "localhost", user = "", pass = "", query = null, db = "default";
-            string coalesce = null;
+            string coalesce = null, cstr = null;
             var port = 9000;
             var formatters = new Dictionary<OutputFormat, Func<Stream, Outputter>> {
                 {OutputFormat.TSV, s => new TsvOutputter(s)},
@@ -71,13 +71,18 @@ namespace ClickHouse.Isql {
                                 return Help("Missing coalesce parameter value.");
                             coalesce = args[++i];
                             break;
+                        case "cstr":
+                            if (i == args.Length - 1)
+                                return Help("Missing cstr parameter value.");
+                            cstr = args[++i];
+                            break;
                     }
 
             if (string.IsNullOrWhiteSpace(query))
                 return Help("Missing query to execute");
             var formatter = formatters[format](Console.OpenStandardOutput());
             formatter.Start();
-            using (var cnn = new ClickHouseConnection($"Host={host};Port={port};User={user};Password={pass};Database={db}")) {
+            using (var cnn = new ClickHouseConnection(cstr??$"Host={host};Port={port};User={user};Password={pass};Database={db}")) {
                 cnn.Open();
                 var hasOutput = false;
                 using (var cmd = cnn.CreateCommand(query))
