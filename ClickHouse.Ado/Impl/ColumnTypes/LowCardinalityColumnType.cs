@@ -26,7 +26,10 @@ internal class LowCardinalityColumnType : ColumnType {
         await formatter.WriteBytes(BitConverter.GetBytes(1L), cToken);
         await formatter.WriteBytes(BitConverter.GetBytes(1538L), cToken);
         await formatter.WriteBytes(BitConverter.GetBytes((long)rows), cToken);
-        await InnerType.Write(formatter, rows, cToken);
+        if (InnerType is NullableColumnType nct)
+            await nct.WriteOnlyInner(formatter, rows, cToken);
+        else
+            await InnerType.Write(formatter, rows, cToken);
         await formatter.WriteBytes(BitConverter.GetBytes((long)rows), cToken);
         for (var i = 0; i < rows; i++)
             await formatter.WriteBytes(BitConverter.GetBytes(i), cToken);
@@ -43,7 +46,10 @@ internal class LowCardinalityColumnType : ColumnType {
         if (((keyLength >> 8) & 0xff) != 6)
             throw new NotSupportedException("Invalid LowCardinality key flags");
         var keyCount = BitConverter.ToInt64(await formatter.ReadBytes(8, -1, cToken), 0);
-        await InnerType.Read(formatter, (int)keyCount, cToken);
+        if (InnerType is NullableColumnType nct)
+            await nct.ReadOnlyInner(formatter, (int)keyCount, cToken);
+        else
+            await InnerType.Read(formatter, (int)keyCount, cToken);
         var valueCount = BitConverter.ToInt64(await formatter.ReadBytes(8, -1, cToken), 0);
         Indices = new int[rows];
         for (var i = 0; i < rows; i++) Indices[i] = BitConverter.ToInt32(await formatter.ReadBytes(_keySize, 4, cToken), 0);

@@ -26,11 +26,21 @@ internal class NullableColumnType : ColumnType {
         await new SimpleColumnType<byte>(Nulls.Select(x => x ? (byte)1 : (byte)0).ToArray()).Write(formatter, rows, cToken);
         await InnerType.Write(formatter, rows, cToken);
     }
+    
+    public async Task WriteOnlyInner(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        Debug.Assert(Rows == rows, "Row count mismatch!");
+        await InnerType.Write(formatter, rows, cToken);
+    }
 
     internal override async Task Read(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
         var nullStatuses = new SimpleColumnType<byte>();
         await nullStatuses.Read(formatter, rows, cToken);
         Nulls = nullStatuses.Data.Select(x => x != 0).ToArray();
+        await InnerType.Read(formatter, rows, cToken);
+    }
+    
+    internal async Task ReadOnlyInner(ProtocolFormatter formatter, int rows, CancellationToken cToken) {
+        Nulls = new bool[rows];
         await InnerType.Read(formatter, rows, cToken);
     }
 
