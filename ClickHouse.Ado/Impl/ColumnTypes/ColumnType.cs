@@ -11,7 +11,7 @@ using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Scanner = ClickHouse.Ado.Impl.ATG.IdentList.Scanner;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes; 
+namespace ClickHouse.Ado.Impl.ColumnTypes;
 
 internal abstract class ColumnType {
     private static readonly Dictionary<string, string> CaseInsensitiveTypeAliases = new(new CaseInsensitiveComparer()) {
@@ -67,6 +67,8 @@ internal abstract class ColumnType {
         { "String", typeof(StringColumnType) },
         { "Null", typeof(NullColumnType) },
         { GuidColumnType.UuidColumnTypeName, typeof(GuidColumnType) },
+        { Ipv4ColumnType.Ipv4ColumnTypeName, typeof(Ipv4ColumnType) },
+        { Ipv6ColumnType.Ipv6ColumnTypeName, typeof(Ipv6ColumnType) },
         { "Nothing", typeof(NullColumnType) },
         { "Bool", typeof(BooleanColumnType) }
     };
