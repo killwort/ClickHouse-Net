@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using ClickHouse.Ado.Impl;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public class ClickHouseConnection : DbConnection, IDbConnection {
     private Stream _connectionStream;
@@ -34,6 +34,7 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
     internal ProtocolFormatter Formatter { get; set; }
 
     public X509Certificate2 TlsClientCertificate { get; set; }
+    public RemoteCertificateValidationCallback TlsServerCertificateValidationCallback { get; set; } = (_, _, _, _) => true;
 
     public ServerInfo ServerInfo => Formatter.ServerInfo;
     public override string DataSource { get; }
@@ -102,8 +103,7 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
             await Connect(_tcpClient, ConnectionSettings.Host, ConnectionSettings.Port, cToken);
             var netStream = new NetworkStream(_tcpClient.Client);
             if (ConnectionSettings.Encrypt) {
-                // TODO: Fix with proper certification validation
-                var sslStream = new SslStream(netStream, true, (_1, _2, _3, _4) => true);
+                var sslStream = new SslStream(netStream, true, TlsServerCertificateValidationCallback);
                 var authOptions = new SslClientAuthenticationOptions();
                 authOptions.TargetHost = ConnectionSettings.Host;
                 if (TlsClientCertificate != null)
@@ -127,7 +127,7 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
     }
 
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotSupportedException();
-    protected override DbCommand CreateDbCommand() => throw new NotImplementedException();
+    protected override DbCommand CreateDbCommand() => new ClickHouseCommand(this);
 
     public ClickHouseCommand CreateCommand() => new(this);
 

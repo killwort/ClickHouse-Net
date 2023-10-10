@@ -1,6 +1,6 @@
 using ClickHouse.Ado;
 
-namespace ClickHouse.Test; 
+namespace ClickHouse.Test;
 
 internal class ConnectionHandler {
     internal const string SimpleConnectionString = "Compress=False;BufferSize=32768;SocketTimeout=10000;CheckCompressedHash=False;Encrypt=False;Compressor=lz4;Host=ch-test.flippingbook.com;Port=9000;Database=default;User=andreya;Password=123";

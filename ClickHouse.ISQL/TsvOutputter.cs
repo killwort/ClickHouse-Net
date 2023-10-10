@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace ClickHouse.Isql; 
+namespace ClickHouse.Isql;
 
 internal class TsvOutputter : Outputter {
     private TextWriter writer;

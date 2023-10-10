@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Data; 
+namespace ClickHouse.Ado.Impl.Data;
 
 internal class BlockInfo {
     public bool IsOwerflow { get; private set; }

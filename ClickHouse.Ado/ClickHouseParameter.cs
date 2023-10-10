@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Linq;
 using ClickHouse.Ado.Impl;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public class ClickHouseParameter : DbParameter, IDbDataParameter {
     public override ParameterDirection Direction { get; set; }
@@ -26,7 +26,7 @@ public class ClickHouseParameter : DbParameter, IDbDataParameter {
     byte IDbDataParameter.Precision { get; set; }
     byte IDbDataParameter.Scale { get; set; }
     int IDbDataParameter.Size { get; set; }
-    public override void ResetDbType() => throw new NotImplementedException();
+    public override void ResetDbType() => DbType = default;
 
     private string AsSubstitute(object val) {
         if (DbType == DbType.String || DbType == DbType.AnsiString || DbType == DbType.StringFixedLength || DbType == DbType.AnsiStringFixedLength || (DbType == 0 && val is string))

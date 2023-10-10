@@ -10,7 +10,7 @@ using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes; 
+namespace ClickHouse.Ado.Impl.ColumnTypes;
 
 internal class Date32ColumnType : DateColumnType {
     private static readonly DateTime UnixTimeBase = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);

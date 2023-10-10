@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Ado.Impl; 
+﻿namespace ClickHouse.Ado.Impl;
 
 internal static class ProtocolCaps {
     internal const int DbmsMinRevisionWithTemporaryTables = 50264;

@@ -3,7 +3,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Data; 
+namespace ClickHouse.Ado.Impl.Data;
 
 internal class ClientInfo {
     public ClientInfo() {

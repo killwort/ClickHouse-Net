@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ColumnTypes;
 
-namespace ClickHouse.Ado.Impl.Data; 
+namespace ClickHouse.Ado.Impl.Data;
 
 internal class ColumnInfo {
     public string Name { get; set; }

@@ -4,7 +4,7 @@ using System.Threading;
 using ClickHouse.Ado;
 using NUnit.Framework;
 
-namespace ClickHouse.Test; 
+namespace ClickHouse.Test;
 
 [TestFixture]
 public class Test_98_TZ {
@@ -22,7 +22,7 @@ public class Test_98_TZ {
     public void TestRoundtripLiteral() {
         using (var cnn = ConnectionHandler.GetConnection()) {
             cnn.CreateCommand("INSERT INTO test_98_dt64 (k, dt64, dt64tz) VALUES ('2020-01-02','2020-01-01 00:00:00','2020-01-01 00:00:00')").ExecuteNonQuery();
-            DateTime noOffset = DateTime.Now, offset = noOffset, b = new DateTime(2020, 01, 01, 0, 0, 0);
+            DateTime noOffset = DateTime.Now, offset = noOffset, b = new(2020, 01, 01, 0, 0, 0);
             cnn.CreateCommand("SELECT dt64, dt64tz FROM test_98_dt64 WHERE k='2020-01-02'").ExecuteReader().ReadAll(
                 r => {
                     noOffset = r.GetDateTime(0);
@@ -39,7 +39,7 @@ public class Test_98_TZ {
         using (var cnn = ConnectionHandler.GetConnection()) {
             cnn.CreateCommand("INSERT INTO test_98_dt64 (k, dt64, dt64tz) VALUES ('2020-01-03',@d1,@d2)").AddParameter("d1", DbType.DateTime, new DateTime(2020, 01, 01, 0, 0, 0, DateTimeKind.Utc)).AddParameter("d2", DbType.DateTime, new DateTime(2020, 01, 01, 0, 0, 0, DateTimeKind.Utc))
                .ExecuteNonQuery();
-            DateTime noOffset = DateTime.Now, offset = noOffset, b = new DateTime(2020, 01, 01, 0, 0, 0);
+            DateTime noOffset = DateTime.Now, offset = noOffset, b = new(2020, 01, 01, 0, 0, 0);
             cnn.CreateCommand("SELECT dt64, dt64tz FROM test_98_dt64 WHERE k='2020-01-03'").ExecuteReader().ReadAll(
                 r => {
                     noOffset = r.GetDateTime(0);

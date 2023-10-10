@@ -7,7 +7,7 @@ using System.Linq;
 using ClickHouse.Ado;
 using NUnit.Framework;
 
-namespace ClickHouse.Test; 
+namespace ClickHouse.Test;
 
 [TestFixture]
 public class SimpleTests {
@@ -131,7 +131,7 @@ GROUP BY tracked_link_id";
             cnn.CreateCommand(sql).ExecuteNonQuery();
         }
     }
-    
+
     [Test]
     public void TestGuidByteOrder() {
         using (var cnn = ConnectionHandler.GetConnection()) {
@@ -194,7 +194,6 @@ GROUP BY tracked_link_id";
             cmd.ExecuteNonQuery();
         }
     }
-
 
     [Test]
     public void TestInsertNestedColumnBulk() {

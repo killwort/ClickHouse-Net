@@ -3,7 +3,7 @@ using System.Data;
 using ClickHouse.Ado;
 using NUnit.Framework;
 
-namespace ClickHouse.Test; 
+namespace ClickHouse.Test;
 
 [TestFixture]
 public class TestBooleanSupport {

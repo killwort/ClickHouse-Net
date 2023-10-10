@@ -4,7 +4,7 @@ using System.Threading;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using NUnit.Framework;
 
-namespace ClickHouse.Test; 
+namespace ClickHouse.Test;
 
 [TestFixture]
 public class Test_119_StringEscaping {

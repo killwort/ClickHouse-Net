@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public class ClickHouseConnectionSettings {
     private static readonly Dictionary<string, PropertyInfo> Properties;

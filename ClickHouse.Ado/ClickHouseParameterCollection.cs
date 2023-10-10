@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public class ClickHouseParameterCollection : IEnumerable<ClickHouseParameter>, IDataParameterCollection {
     private readonly List<ClickHouseParameter> _parameters = new();

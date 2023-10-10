@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Isql; 
+﻿namespace ClickHouse.Isql;
 
 public enum OutputFormat {
     TSV,

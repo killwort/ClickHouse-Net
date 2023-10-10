@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado.Impl; 
+namespace ClickHouse.Ado.Impl;
 
 internal class Response {
     public ServerMessageType Type;

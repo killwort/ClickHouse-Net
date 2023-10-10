@@ -12,7 +12,7 @@ using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 using Buffer = System.Buffer;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes; 
+namespace ClickHouse.Ado.Impl.ColumnTypes;
 
 internal class SimpleColumnType<T> : ColumnType where T : struct {
     public SimpleColumnType() { }

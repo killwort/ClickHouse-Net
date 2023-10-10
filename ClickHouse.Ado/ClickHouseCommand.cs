@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public class ClickHouseCommand : DbCommand, IDbCommand {
     private static readonly Regex ParamRegex = new("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);

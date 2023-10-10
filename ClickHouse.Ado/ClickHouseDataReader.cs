@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ColumnTypes;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
     private readonly CommandBehavior _behavior;
@@ -130,7 +130,15 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         await CloseAsync();
     }
 
-    public override IEnumerator GetEnumerator() => throw new NotImplementedException();
+    public override IEnumerator GetEnumerator() {
+        do {
+            var values = new object[FieldCount];
+            while (Read()) {
+                GetValues(values);
+                yield return values;
+            }
+        } while (NextResult());
+    }
 
     public override async Task CloseAsync() {
         if (_currentBlock != null && _clickHouseConnection != null)

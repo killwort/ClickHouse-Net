@@ -4,9 +4,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado.Impl.Settings; 
+namespace ClickHouse.Ado.Impl.Settings;
 
 internal class QuerySettings {
+    /// <summary>
+    ///     Comments are ripped from Clickhouse source.
+    /// </summary>
     private static readonly Dictionary<string, SettingValue> SettingDefaults = new() {
         /** При записи данных, для сжатия выделяется буфер размером max_compress_block_size. При переполнении буфера или если в буфер */
         /** записано данных больше или равно, чем min_compress_block_size, то при очередной засечке, данные так же будут сжиматься */

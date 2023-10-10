@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Ado.Impl.Data; 
+﻿namespace ClickHouse.Ado.Impl.Data;
 
 internal enum QueryKind {
     None = 0,

@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Ado.Impl.Data; 
+﻿namespace ClickHouse.Ado.Impl.Data;
 
 public enum HttpMethod {
     Unknown = 0,

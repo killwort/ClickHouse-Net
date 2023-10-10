@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace ClickHouse.Test; 
+namespace ClickHouse.Test;
 
 [TestFixture]
 public class Test_154_ClusterDDL {

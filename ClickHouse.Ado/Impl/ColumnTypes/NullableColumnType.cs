@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using ClickHouse.Ado.Impl.ATG.Insert;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado.Impl.ColumnTypes; 
+namespace ClickHouse.Ado.Impl.ColumnTypes;
 
 internal class NullableColumnType : ColumnType {
     public NullableColumnType(ColumnType innerType) => InnerType = innerType;

@@ -3,7 +3,7 @@ using System.IO;
 using ClickHouse.Ado.Impl.Data;
 using LZ4;
 
-namespace ClickHouse.Ado.Impl.Compress; 
+namespace ClickHouse.Ado.Impl.Compress;
 
 internal class Lz4Compressor : HashingCompressor {
     private static readonly byte[] Header = { 0x82 };

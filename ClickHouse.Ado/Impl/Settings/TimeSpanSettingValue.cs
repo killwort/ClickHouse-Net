@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings; 
+namespace ClickHouse.Ado.Impl.Settings;
 
 internal class TimeSpanSettingValue : SettingValue {
     public TimeSpanSettingValue(int seconds) => Value = TimeSpan.FromSeconds(seconds);

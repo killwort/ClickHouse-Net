@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 /// <summary>
 ///     Enumeration helped for bulk inserts.

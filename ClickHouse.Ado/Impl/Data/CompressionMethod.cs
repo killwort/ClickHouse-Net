@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Ado.Impl.Data; 
+﻿namespace ClickHouse.Ado.Impl.Data;
 
 internal enum CompressionMethod {
     QuickLz = 0,

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public static class AdoExtensions {
     public static void ReadAll<T>(this T reader, Action<T> rowAction) where T : IDataReader {

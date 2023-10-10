@@ -11,7 +11,7 @@ using ClickHouse.Ado.Impl.Compress;
 using ClickHouse.Ado.Impl.Data;
 using ClickHouse.Ado.Impl.Settings;
 
-namespace ClickHouse.Ado.Impl; 
+namespace ClickHouse.Ado.Impl;
 
 internal class ProtocolFormatter {
     private static readonly Regex NameRegex = new("^[a-zA-Z_][0-9a-zA-Z_]*$", RegexOptions.Compiled);

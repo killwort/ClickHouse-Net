@@ -6,7 +6,7 @@ using System.Threading;
 using ClickHouse.Ado;
 using NUnit.Framework;
 
-namespace ClickHouse.Test; 
+namespace ClickHouse.Test;
 
 [TestFixture]
 public class Test_99_NegativeNumerics {

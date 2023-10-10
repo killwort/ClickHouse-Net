@@ -1,7 +1,7 @@
 ﻿using ClickHouse.Ado;
 using NUnit.Framework;
 
-namespace ClickHouse.Test.ClickHouseConnectionSettingsTests; 
+namespace ClickHouse.Test.ClickHouseConnectionSettingsTests;
 
 [TestFixture]
 public class ToStringTests {

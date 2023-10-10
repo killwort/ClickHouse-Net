@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 
-namespace ClickHouse.Isql; 
+namespace ClickHouse.Isql;
 
 internal class XmlOutputter : Outputter {
     private readonly XmlTextWriter writer;

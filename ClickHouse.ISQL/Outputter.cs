@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Isql; 
+﻿namespace ClickHouse.Isql;
 
 internal abstract class Outputter {
     public abstract void ResultStart();

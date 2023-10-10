@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings; 
+namespace ClickHouse.Ado.Impl.Settings;
 
 internal class FloatSettingValue : SettingValue {
     public FloatSettingValue(float value) => Value = value;

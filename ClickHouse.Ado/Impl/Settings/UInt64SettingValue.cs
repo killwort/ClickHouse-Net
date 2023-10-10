@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings; 
+namespace ClickHouse.Ado.Impl.Settings;
 
 internal class UInt64SettingValue : SettingValue {
     public UInt64SettingValue(ulong value) => Value = value;

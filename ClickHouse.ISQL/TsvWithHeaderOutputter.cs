@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace ClickHouse.Isql; 
+namespace ClickHouse.Isql;
 
 internal class TsvWithHeaderOutputter : TsvOutputter {
     public TsvWithHeaderOutputter(Stream s) : base(s) { }

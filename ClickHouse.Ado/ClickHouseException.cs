@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClickHouse.Ado; 
+namespace ClickHouse.Ado;
 
 public class ClickHouseException : Exception {
     public int Code;

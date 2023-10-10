@@ -2,7 +2,7 @@
 using System.IO;
 using ClickHouse.Ado.Impl.Data;
 
-namespace ClickHouse.Ado.Impl.Compress; 
+namespace ClickHouse.Ado.Impl.Compress;
 
 internal abstract class Compressor {
     public abstract CompressionMethod Method { get; }

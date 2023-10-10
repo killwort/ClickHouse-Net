@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Ado.Impl.Data; 
+﻿namespace ClickHouse.Ado.Impl.Data;
 
 internal enum LoadBalancing {
     /// среди реплик с минимальным количеством ошибок выбирается случайная

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace ClickHouse.Ado.Impl.Compress; 
+namespace ClickHouse.Ado.Impl.Compress;
 
 internal class ChunkedStream : Stream {
     private readonly Func<byte[]> _nextChunk;

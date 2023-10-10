@@ -1,4 +1,4 @@
-﻿namespace ClickHouse.Ado.Impl.Data; 
+﻿namespace ClickHouse.Ado.Impl.Data;
 
 internal enum GlobalSubqueriesMethod {
     Push = 0,

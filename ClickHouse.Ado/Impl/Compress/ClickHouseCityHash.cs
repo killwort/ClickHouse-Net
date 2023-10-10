@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClickHouse.Ado.Impl.Compress; 
+namespace ClickHouse.Ado.Impl.Compress;
 
 //This implementation is NOT COMPATIBLE with contemporary CityHash algo.
 //Shamelessly ripped and ported from clickhouse sources ./contrib/libcityhash/src/city.cc

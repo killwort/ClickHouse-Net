@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ClickHouse.Ado.Impl.Compress; 
+namespace ClickHouse.Ado.Impl.Compress;
 
 internal struct UInt128 : IEquatable<UInt128> {
     public UInt128(ulong low, ulong high) : this() {

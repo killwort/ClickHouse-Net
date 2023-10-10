@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ClickHouse.Ado.Impl.Settings; 
+namespace ClickHouse.Ado.Impl.Settings;
 
 internal class EnumSettingValue<T> : SettingValue where T : struct {
     public EnumSettingValue(T value) => Value = value;
