@@ -124,12 +124,12 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         base.Dispose(disposing);
         Close();
     }
-
+#if CORE_FRAMEWORK
     public override async ValueTask DisposeAsync() {
         await base.DisposeAsync();
         await CloseAsync();
     }
-
+#endif
     public override IEnumerator GetEnumerator() {
         do {
             var values = new object[FieldCount];
@@ -140,7 +140,11 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         } while (NextResult());
     }
 
-    public override async Task CloseAsync() {
+    public
+#if CORE_FRAMEWORK
+        override
+#endif
+        async Task CloseAsync() {
         if (_currentBlock != null && _clickHouseConnection != null)
             await _clickHouseConnection.Formatter.ReadResponse(new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token);
         if (_clickHouseConnection != null && (_behavior & CommandBehavior.CloseConnection) != 0)

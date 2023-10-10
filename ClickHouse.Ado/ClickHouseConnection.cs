@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.IO;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,7 +85,11 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
     IDbCommand IDbConnection.CreateCommand() => new ClickHouseCommand(this);
 
     private async Task Connect(TcpClient client, string hostName, int port, CancellationToken cToken) {
+#if CORE_FRAMEWORK
         await client.ConnectAsync(hostName, port, cToken);
+#else
+        await client.ConnectAsync(hostName, port);
+#endif
         cToken.ThrowIfCancellationRequested();
         if (!client.Connected)
             throw new InvalidOperationException("Connection failure");
@@ -104,11 +109,18 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
             var netStream = new NetworkStream(_tcpClient.Client);
             if (ConnectionSettings.Encrypt) {
                 var sslStream = new SslStream(netStream, true, TlsServerCertificateValidationCallback);
+                #if CORE_FRAMEWORK
                 var authOptions = new SslClientAuthenticationOptions();
                 authOptions.TargetHost = ConnectionSettings.Host;
                 if (TlsClientCertificate != null)
                     (authOptions.ClientCertificates ??= new X509CertificateCollection()).Add(TlsClientCertificate);
                 await sslStream.AuthenticateAsClientAsync(authOptions, cToken);
+#else
+                if (TlsClientCertificate != null)
+                    await sslStream.AuthenticateAsClientAsync(ConnectionSettings.Host, new X509CertificateCollection { TlsClientCertificate }, SslProtocols.Tls12, false);
+                else
+                    await sslStream.AuthenticateAsClientAsync(ConnectionSettings.Host, new X509CertificateCollection(), SslProtocols.Tls12, false);
+                #endif
                 _connectionStream = sslStream;
             } else {
                 _connectionStream = netStream;

@@ -72,7 +72,7 @@ internal class Ipv6ColumnType : ColumnType {
 
     public override object Value(int currentRow) => Data[currentRow];
 
-    public override long IntValue(int currentRow) => BitConverter.ToInt64(Data[currentRow].GetAddressBytes());
+    public override long IntValue(int currentRow) => BitConverter.ToInt64(Data[currentRow].GetAddressBytes(), 0);
 
     public override void ValuesFromConst(IEnumerable objects) => Data = objects.Cast<IPAddress>().ToArray();
 

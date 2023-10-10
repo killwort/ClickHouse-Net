@@ -4,11 +4,12 @@
         <Description>.NET driver for Yandex ClickHouse. It implements native ClickHouse protocol with data compression (not a wrapper for HTTP client)</Description>
         <AssemblyTitle>ClickHouse.Ado</AssemblyTitle>
         <Authors>Andrey Zakharov</Authors>
-        <Version>2.0.0-preview</Version>
+        <Version>2.0.1-preview</Version>
 
-        <TargetFrameworks>net7.0</TargetFrameworks>
+        <TargetFrameworks>net7.0;net462</TargetFrameworks>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <AssemblyName>ClickHouse.Ado</AssemblyName>
+        <LangVersion>11</LangVersion>
 
         <PackageId>ClickHouse.Ado</PackageId>
         <PackageTags>ClickHouse;connector;ado.net;netcore</PackageTags>
@@ -29,10 +30,16 @@
             del /q $(SolutionDir).lock
             :end
         </PreBuildEvent>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)'=='net7.0'">
         <DefineConstants>$(DefineConstants);NET5;CORE_FRAMEWORK</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)'!='net7.0'">
+        <DefineConstants>$(DefineConstants);NET4;CLASSIC_FRAMEWORK</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="lz4net" Version="1.0.15.93"/>
+        <PackageReference Include="K4os.Compression.LZ4" Version="1.3.7-beta" />
     </ItemGroup>
+
 </Project>

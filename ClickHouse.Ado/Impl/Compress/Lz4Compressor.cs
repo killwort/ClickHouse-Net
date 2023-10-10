@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using ClickHouse.Ado.Impl.Data;
-using LZ4;
+using K4os.Compression.LZ4;
 
 namespace ClickHouse.Ado.Impl.Compress;
 
@@ -17,10 +17,11 @@ internal class Lz4Compressor : HashingCompressor {
     protected override byte[] Compress(MemoryStream uncompressed) {
         var output = new MemoryStream();
         output.Write(Header, 0, Header.Length);
-        var compressed = _useHc ? LZ4Codec.EncodeHC(uncompressed.ToArray(), 0, (int)uncompressed.Length) : LZ4Codec.Encode(uncompressed.ToArray(), 0, (int)uncompressed.Length);
-        output.Write(BitConverter.GetBytes(compressed.Length + 9), 0, 4);
+        var compressed = new byte[LZ4Codec.MaximumOutputSize((int)uncompressed.Length)];
+        var compressedLength = LZ4Codec.Encode(uncompressed.ToArray(),  0, (int)uncompressed.Length, compressed, 0 ,compressed.Length);
+        output.Write(BitConverter.GetBytes(compressedLength + 9), 0, 4);
         output.Write(BitConverter.GetBytes(uncompressed.Length), 0, 4);
-        output.Write(compressed, 0, compressed.Length);
+        output.Write(compressed, 0, compressedLength);
         return output.ToArray();
     }
 
@@ -45,6 +46,8 @@ internal class Lz4Compressor : HashingCompressor {
         } while (read < compressedSize);
 
         compressedHash = ClickHouseCityHash.CityHash128(compressedBytes);
-        return LZ4Codec.Decode(compressedBytes, header.Length, compressedSize, uncompressedSize);
+        var uncompressed = new byte[uncompressedSize];
+        LZ4Codec.Decode(compressedBytes, header.Length, compressedSize, uncompressed, 0, uncompressedSize);
+        return uncompressed;
     }
 }
