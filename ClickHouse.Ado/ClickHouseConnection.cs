@@ -13,7 +13,11 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado;
 
+/// <summary>
+///     Clickhouse-specific database connection.
+/// </summary>
 public class ClickHouseConnection : DbConnection, IDbConnection {
+    internal readonly SemaphoreSlim DialogueLock = new(1, 1);
     private Stream _connectionStream;
 
     private string _database;
@@ -22,30 +26,55 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
 
     private TcpClient _tcpClient;
 
-    internal SemaphoreSlim DialogueLock = new(1, 1);
-
+    /// <summary>
+    ///     Creates empty connection.
+    /// </summary>
     public ClickHouseConnection() { }
 
+    /// <summary>
+    ///     Creates connection with specified connection settings.
+    /// </summary>
+    /// <param name="settings">Connection settings.</param>
     public ClickHouseConnection(ClickHouseConnectionSettings settings) => ConnectionSettings = settings;
 
+    /// <summary>
+    ///     Creates connection with connection string.
+    /// </summary>
+    /// <param name="connectionString">Connection string.</param>
     public ClickHouseConnection(string connectionString) => ConnectionSettings = new ClickHouseConnectionSettings(connectionString);
 
+    /// <summary>
+    ///     Connection settings read from connection string.
+    /// </summary>
     public ClickHouseConnectionSettings ConnectionSettings { get; private set; }
 
     internal ProtocolFormatter Formatter { get; set; }
 
+    /// <summary>
+    ///     TLS client certificate to use for authentication. <see cref="ClickHouseConnectionSettings.Encrypt" /> should be set
+    ///     to <code>true</code>.
+    /// </summary>
     public X509Certificate2 TlsClientCertificate { get; set; }
+
+    /// <summary>
+    ///     Validation callback to use on server certificate. <see cref="ClickHouseConnectionSettings.Encrypt" /> should be set
+    ///     to <code>true</code>.
+    /// </summary>
+    /// <remarks>By default it accepts all certificates: self-signed, expired, etc.</remarks>
     public RemoteCertificateValidationCallback TlsServerCertificateValidationCallback { get; set; } = (_, _, _, _) => true;
 
+    /// <summary>
+    ///     Information about connected server.
+    /// </summary>
     public ServerInfo ServerInfo => Formatter.ServerInfo;
+
+    /// <inheritdoc />
     public override string DataSource { get; }
 
-    public override string ServerVersion { get; }
+    /// <inheritdoc />
+    public override string ServerVersion => $"{ServerInfo?.Major}.{ServerInfo?.Minor}.{ServerInfo?.Build}.{ServerInfo?.Patch}";
 
-    public void Dispose() {
-        if (_tcpClient != null) Close();
-    }
-
+    /// <inheritdoc />
     public override void Close() {
         if (Formatter != null) {
             Formatter.Close();
@@ -66,26 +95,30 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
     /// <inheritdoc />
     public override void Open() => OpenAsync().Wait();
 
+    /// <inheritdoc />
     public override string ConnectionString { get => ConnectionSettings.ToString(); set => ConnectionSettings = new ClickHouseConnectionSettings(value); }
 
-    public int ConnectionTimeout { get; set; } = 10000;
+    /// <inheritdoc />
     public override string Database => _database;
 
+    /// <inheritdoc />
     public override void ChangeDatabase(string databaseName) {
         CreateCommand("USE " + ProtocolFormatter.EscapeName(databaseName)).ExecuteNonQuery();
         _database = databaseName;
     }
 
+    /// <inheritdoc />
     public override ConnectionState State => Formatter != null ? _isBroken ? ConnectionState.Broken : ConnectionState.Open : ConnectionState.Closed;
-
-    public IDbTransaction BeginTransaction() => throw new NotSupportedException();
-
-    public IDbTransaction BeginTransaction(IsolationLevel il) => throw new NotSupportedException();
 
     IDbCommand IDbConnection.CreateCommand() => new ClickHouseCommand(this);
 
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing) {
+        if (_tcpClient != null) Close();
+    }
+
     private async Task Connect(TcpClient client, string hostName, int port, CancellationToken cToken) {
-#if CORE_FRAMEWORK
+#if MODERN_CORE_FRAMEWORK
         await client.ConnectAsync(hostName, port, cToken);
 #else
         await client.ConnectAsync(hostName, port);
@@ -109,7 +142,7 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
             var netStream = new NetworkStream(_tcpClient.Client);
             if (ConnectionSettings.Encrypt) {
                 var sslStream = new SslStream(netStream, true, TlsServerCertificateValidationCallback);
-                #if CORE_FRAMEWORK
+#if CORE_FRAMEWORK
                 var authOptions = new SslClientAuthenticationOptions();
                 authOptions.TargetHost = ConnectionSettings.Host;
                 if (TlsClientCertificate != null)
@@ -120,7 +153,7 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
                     await sslStream.AuthenticateAsClientAsync(ConnectionSettings.Host, new X509CertificateCollection { TlsClientCertificate }, SslProtocols.Tls12, false);
                 else
                     await sslStream.AuthenticateAsClientAsync(ConnectionSettings.Host, new X509CertificateCollection(), SslProtocols.Tls12, false);
-                #endif
+#endif
                 _connectionStream = sslStream;
             } else {
                 _connectionStream = netStream;
@@ -138,11 +171,16 @@ public class ClickHouseConnection : DbConnection, IDbConnection {
         }
     }
 
+    /// <inheritdoc />
     protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => throw new NotSupportedException();
+
+    /// <inheritdoc />
     protected override DbCommand CreateDbCommand() => new ClickHouseCommand(this);
 
-    public ClickHouseCommand CreateCommand() => new(this);
+    /// <inheritdoc cref="CreateCommand()" />
+    public new ClickHouseCommand CreateCommand() => new(this);
 
+    /// <inheritdoc cref="CreateCommand()" />
     public ClickHouseCommand CreateCommand(string text) => new(this, text);
 
     internal void MaybeSetBroken(Exception exception) {

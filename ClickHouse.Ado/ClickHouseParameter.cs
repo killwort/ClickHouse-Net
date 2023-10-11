@@ -8,15 +8,32 @@ using ClickHouse.Ado.Impl;
 
 namespace ClickHouse.Ado;
 
+/// <summary>
+///     Clickhouse specific command parameter.
+/// </summary>
 public class ClickHouseParameter : DbParameter, IDbDataParameter {
+    /// <inheritdoc />
     public override ParameterDirection Direction { get; set; }
+
+    /// <inheritdoc />
     public override bool IsNullable { get; set; }
+
+    /// <inheritdoc />
     public override string SourceColumn { get; set; }
+
+    /// <inheritdoc />
     public override bool SourceColumnNullMapping { get; set; }
+
+    /// <inheritdoc />
     public override int Size { get; set; }
 
+    /// <inheritdoc />
     public override DbType DbType { get; set; }
+
+    /// <inheritdoc />
     public override string ParameterName { get; set; }
+
+    /// <inheritdoc />
     public override object Value { get; set; }
 
     ParameterDirection IDataParameter.Direction { get; set; }
@@ -26,6 +43,8 @@ public class ClickHouseParameter : DbParameter, IDbDataParameter {
     byte IDbDataParameter.Precision { get; set; }
     byte IDbDataParameter.Scale { get; set; }
     int IDbDataParameter.Size { get; set; }
+
+    /// <inheritdoc />
     public override void ResetDbType() => DbType = default;
 
     private string AsSubstitute(object val) {
@@ -50,7 +69,8 @@ public class ClickHouseParameter : DbParameter, IDbDataParameter {
         return val.ToString();
     }
 
-    public string AsSubstitute() => AsSubstitute(Value);
+    internal string AsSubstitute() => AsSubstitute(Value);
 
+    /// <inheritdoc />
     public override string ToString() => $"{ParameterName}({DbType}): {Value}";
 }

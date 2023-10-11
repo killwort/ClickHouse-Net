@@ -16,13 +16,11 @@ internal abstract class Compressor {
             case "zstd":
                 throw new NotSupportedException();
             //Actually server doesn't interpret this well. Maybe ZSTD implementation is slightly different?
-#if false
-                    return new ZstdCompressor();
-#endif
+            //return new ZstdCompressor();
             case "lz4hc":
                 throw new NotSupportedException();
-                //Actually server doesn't interpret this well. Maybe LZ4HC implementation is slightly different?
-                return new Lz4Compressor(true, settings);
+            //Actually server doesn't interpret this well. Maybe LZ4HC implementation is slightly different?
+            //return new Lz4Compressor(true, settings);
             case "lz4":
             default:
                 return new Lz4Compressor(false, settings);

@@ -76,5 +76,5 @@ internal class Ipv6ColumnType : ColumnType {
 
     public override void ValuesFromConst(IEnumerable objects) => Data = objects.Cast<IPAddress>().ToArray();
 
-    public override void NullableValuesFromConst(IEnumerable objects) => Data = objects.Cast<IPAddress?>().Select(x => x ?? IPAddress.None).ToArray();
+    public override void NullableValuesFromConst(IEnumerable objects) => Data = objects.Cast<IPAddress>().Select(x => x ?? IPAddress.None).ToArray();
 }

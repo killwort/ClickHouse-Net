@@ -21,7 +21,6 @@ public class Test_70_IpColumns {
 
     [Test]
     public void TestInsertBulk() {
-        var value = true;
         using (var cnn = ConnectionHandler.GetConnection()) {
             cnn.CreateCommand("INSERT INTO test_70_ip (k, ip4, ip6) VALUES @bulk").AddParameter("bulk", DbType.Object, new object[] { new object[] { 1, IPAddress.Parse("127.0.0.1"), IPAddress.Parse("::1") } }).ExecuteNonQuery();
         }

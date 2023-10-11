@@ -9,6 +9,9 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado;
 
+/// <summary>
+///     Clickhouse specific data reader.
+/// </summary>
 public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
     private readonly CommandBehavior _behavior;
     private ClickHouseConnection _clickHouseConnection;
@@ -22,31 +25,40 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         NextResult();
     }
 
+    /// <inheritdoc />
     public override object this[string name] => GetValue(GetOrdinal(name));
 
+    /// <inheritdoc />
     public override object this[int ordinal] => GetValue(ordinal);
-    public override bool HasRows { get; }
 
+    /// <inheritdoc />
+    public override bool HasRows => _currentBlock?.Rows > 0;
+
+    /// <inheritdoc />
     public override string GetName(int i) => _currentBlock.Columns[i].Name;
 
+    /// <inheritdoc />
     public override string GetDataTypeName(int i) {
         if (_currentBlock == null)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
         return _currentBlock.Columns[i].Type.AsClickHouseType(ClickHouseTypeUsageIntent.Generic);
     }
 
+    /// <inheritdoc />
     public override Type GetFieldType(int i) {
         if (_currentBlock == null)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
         return _currentBlock.Columns[i].Type.CLRType;
     }
 
+    /// <inheritdoc />
     public override object GetValue(int i) {
         if (_currentBlock == null || _currentBlock.Rows <= _currentRow || i < 0 || i >= FieldCount)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
         return _currentBlock.Columns[i].Type.Value(_currentRow);
     }
 
+    /// <inheritdoc />
     public override int GetValues(object[] values) {
         if (_currentBlock == null || _currentBlock.Rows <= _currentRow)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
@@ -56,48 +68,64 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         return n;
     }
 
+    /// <inheritdoc />
     public override int GetOrdinal(string name) {
         if (_currentBlock == null || _currentBlock.Rows <= _currentRow)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
         return _currentBlock.Columns.FindIndex(x => x.Name == name);
     }
 
+    /// <inheritdoc />
     public override bool GetBoolean(int i) => GetInt64(i) != 0;
 
+    /// <inheritdoc />
     public override byte GetByte(int i) => (byte)GetInt64(i);
 
+    /// <inheritdoc />
     public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length) => throw new NotSupportedException();
 
+    /// <inheritdoc />
     public override char GetChar(int i) => (char)GetInt64(i);
 
+    /// <inheritdoc />
     public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) => throw new NotSupportedException();
 
+    /// <inheritdoc />
     public override Guid GetGuid(int i) => (Guid)GetValue(i);
 
+    /// <inheritdoc />
     public override short GetInt16(int i) => (short)GetInt64(i);
 
+    /// <inheritdoc />
     public override int GetInt32(int i) => (int)GetInt64(i);
 
+    /// <inheritdoc />
     public override long GetInt64(int i) {
         if (_currentBlock == null || _currentBlock.Rows <= _currentRow || i < 0 || i >= FieldCount)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
         return _currentBlock.Columns[i].Type.IntValue(_currentRow);
     }
 
+    /// <inheritdoc />
     public override float GetFloat(int i) => Convert.ToSingle(GetValue(i));
 
+    /// <inheritdoc />
     public override double GetDouble(int i) => Convert.ToDouble(GetValue(i));
 
+    /// <inheritdoc />
     public override string GetString(int i) => GetValue(i).ToString();
 
+    /// <inheritdoc />
     public override decimal GetDecimal(int i) => Convert.ToDecimal(GetValue(i));
 
+    /// <inheritdoc />
     public override DateTime GetDateTime(int i) => Convert.ToDateTime(GetValue(i));
 
     object IDataRecord.this[int i] => GetValue(i);
 
     object IDataRecord.this[string name] => GetValue(GetOrdinal(name));
 
+    /// <inheritdoc />
     public override bool IsDBNull(int i) {
         if (_currentBlock == null)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
@@ -108,28 +136,40 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         return false;
     }
 
+    /// <inheritdoc />
     public override int FieldCount => _currentBlock.Columns.Count;
 
+    /// <inheritdoc />
     public override void Close() => CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
+    /// <inheritdoc />
     public override bool NextResult() => NextResultAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
+    /// <inheritdoc />
     public override bool Read() => ReadAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
+    /// <inheritdoc />
     public override int Depth { get; } = 1;
+
+    /// <inheritdoc />
     public override bool IsClosed => _clickHouseConnection == null;
+
+    /// <inheritdoc />
     public override int RecordsAffected => _currentBlock.Rows;
 
+    /// <inheritdoc />
     protected override void Dispose(bool disposing) {
         base.Dispose(disposing);
         Close();
     }
 #if CORE_FRAMEWORK
+    /// <inheritdoc />
     public override async ValueTask DisposeAsync() {
         await base.DisposeAsync();
         await CloseAsync();
     }
 #endif
+    /// <inheritdoc />
     public override IEnumerator GetEnumerator() {
         do {
             var values = new object[FieldCount];
@@ -140,6 +180,7 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         } while (NextResult());
     }
 
+    /// <inheritdoc />
     public
 #if CORE_FRAMEWORK
         override
@@ -153,12 +194,13 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         _clickHouseConnection = null;
     }
 
+    /// <inheritdoc />
     public override async Task<bool> NextResultAsync(CancellationToken cToken) {
         _currentRow = -1;
 
         try {
             _currentBlock = await _clickHouseConnection.Formatter.ReadBlock(cToken);
-        } catch (Exception ex) {
+        } catch {
             _currentBlock = null;
             throw;
         }
@@ -166,12 +208,13 @@ public class ClickHouseDataReader : DbDataReader, IDataReader, IDisposable {
         return _currentBlock != null;
     }
 
-    public override async Task<bool> ReadAsync(CancellationToken cancellationToken) {
+    /// <inheritdoc />
+    public override Task<bool> ReadAsync(CancellationToken cancellationToken) {
         if (_currentBlock == null)
             throw new InvalidOperationException("Trying to read beyond end of stream.");
         _currentRow++;
         if (_currentBlock.Rows <= _currentRow)
-            return false;
-        return true;
+            return Task.FromResult(false);
+        return Task.FromResult(true);
     }
 }

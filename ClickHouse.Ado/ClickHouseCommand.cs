@@ -14,47 +14,86 @@ using ClickHouse.Ado.Impl.Data;
 
 namespace ClickHouse.Ado;
 
+/// <summary>
+///     Clickhouse-specific database command implementation.
+/// </summary>
 public class ClickHouseCommand : DbCommand, IDbCommand {
     private static readonly Regex ParamRegex = new("[@:](?<n>([a-z_][a-z0-9_]*)|[@:])", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    /// <summary>
+    ///     Creates empty command.
+    /// </summary>
     public ClickHouseCommand() { }
 
+    /// <summary>
+    ///     Creates empty command bound to connection.
+    /// </summary>
+    /// <param name="clickHouseConnection">Database connection.</param>
     public ClickHouseCommand(ClickHouseConnection clickHouseConnection) => Connection = clickHouseConnection;
 
+    /// <summary>
+    ///     Creates command with specified text bound to connection.
+    /// </summary>
+    /// <param name="clickHouseConnection">Database connection.</param>
+    /// <param name="text">Command text.</param>
     public ClickHouseCommand(ClickHouseConnection clickHouseConnection, string text) : this(clickHouseConnection) => CommandText = text;
 
+    /// <inheritdoc />
     protected override DbConnection DbConnection { get; set; }
+
+    /// <inheritdoc />
     protected override DbParameterCollection DbParameterCollection { get; }
+
+    /// <inheritdoc />
     protected override DbTransaction DbTransaction { get; set; }
+
+    /// <inheritdoc />
     public override bool DesignTimeVisible { get; set; }
-    public ClickHouseParameterCollection Parameters { get; } = new();
 
-    public void Dispose() { }
+    /// <inheritdoc cref="Parameters" />
+    public new ClickHouseParameterCollection Parameters { get; } = new();
 
+    /// <inheritdoc />
     public override void Prepare() => throw new NotSupportedException();
 
+    /// <inheritdoc />
     public override void Cancel() => throw new NotSupportedException();
 
     IDbDataParameter IDbCommand.CreateParameter() => new ClickHouseParameter();
 
     IDbConnection IDbCommand.Connection { get => Connection; set => Connection = (ClickHouseConnection)value; }
-    public IDbTransaction Transaction { get; set; }
+
+    /// <inheritdoc />
     public override CommandType CommandType { get; set; }
+
     IDataParameterCollection IDbCommand.Parameters => Parameters;
+
+    /// <inheritdoc />
     public override UpdateRowSource UpdatedRowSource { get; set; }
 
+    /// <inheritdoc />
     public override int ExecuteNonQuery() => ExecuteNonQueryAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
     IDataReader IDbCommand.ExecuteReader() => ExecuteDbDataReader(CommandBehavior.Default);
 
     IDataReader IDbCommand.ExecuteReader(CommandBehavior behavior) => ExecuteDbDataReader(behavior);
 
+    /// <inheritdoc />
     public override object ExecuteScalar() => ExecuteScalarAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
+    /// <inheritdoc />
     public override string CommandText { get; set; }
+
+    /// <inheritdoc />
     public override int CommandTimeout { get; set; }
+
+    /// <inheritdoc />
     protected override DbParameter CreateDbParameter() => new ClickHouseParameter();
+
+    /// <inheritdoc />
     protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => ExecuteDbDataReaderAsync(behavior, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
 
+    /// <inheritdoc />
     protected override async Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cToken) {
         //For the weird folks who change Connection in between of Execute and actual reading the result.
         var tempConnection = (ClickHouseConnection)DbConnection;
@@ -62,11 +101,13 @@ public class ClickHouseCommand : DbCommand, IDbCommand {
         return new ClickHouseDataReader(tempConnection, behavior);
     }
 
+    /// <inheritdoc />
     public override async Task<int> ExecuteNonQueryAsync(CancellationToken cToken) {
         await Execute(true, (ClickHouseConnection)DbConnection, cToken);
         return 0;
     }
 
+    /// <inheritdoc />
     public override async Task<object> ExecuteScalarAsync(CancellationToken cToken) {
         object result = null;
         using (var reader = await ExecuteDbDataReaderAsync(CommandBehavior.Default, cToken)) {

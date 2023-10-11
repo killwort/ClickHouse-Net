@@ -17,7 +17,6 @@ public class TestBooleanSupport {
 
     [Test]
     public void TestInsertBulk() {
-        var value = true;
         using (var cnn = ConnectionHandler.GetConnection()) {
             cnn.CreateCommand("INSERT INTO test_bool (k, bool_column) VALUES @bulk").AddParameter("bulk", DbType.Object, new object[] { new object[] { 1, true }, new object[] { 1, false } }).ExecuteNonQuery();
         }
