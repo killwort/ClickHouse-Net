@@ -18,7 +18,8 @@ internal class Parser {
 	public const int _insert = 6;
 	public const int _values = 7;
 	public const int _into = 8;
-	public const int maxT = 18;
+	public const int _settings = 9;
+	public const int maxT = 20;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -110,13 +111,13 @@ internal string oneParam,tableName;
 		} else if (la.kind == 3) {
 			Get();
 			name=t.val; 
-		} else SynErr(19);
+		} else SynErr(21);
 	}
 
 	void Field(out string name ) {
 		name=null; string prefix="", suffix=""; 
 		Identifier(out prefix);
-		if (la.kind == 9) {
+		if (la.kind == 10) {
 			Get();
 			Identifier(out suffix);
 			suffix="."+suffix; 
@@ -128,7 +129,7 @@ internal string oneParam,tableName;
 		var rv=new List<string>(); elements=rv; string elem; IEnumerable<string> inner; 
 		Field(out elem);
 		rv.Add(elem); 
-		if (la.kind == 10) {
+		if (la.kind == 11) {
 			Get();
 			FieldList(out inner);
 			rv.AddRange(inner); 
@@ -136,11 +137,11 @@ internal string oneParam,tableName;
 	}
 
 	void Parameter(out string name ) {
-		if (la.kind == 11) {
+		if (la.kind == 12) {
 			Get();
-		} else if (la.kind == 12) {
+		} else if (la.kind == 13) {
 			Get();
-		} else SynErr(20);
+		} else SynErr(22);
 		Expect(1);
 		name=t.val; 
 	}
@@ -150,25 +151,25 @@ internal string oneParam,tableName;
 		if (la.kind == 4) {
 			Get();
 			val=new ValueType{StringValue=t.val,TypeHint=ConstType.String}; 
-		} else if (la.kind == 11 || la.kind == 12) {
+		} else if (la.kind == 12 || la.kind == 13) {
 			Parameter(out paramName);
 			val=new ValueType{StringValue=paramName,TypeHint=ConstType.Parameter}; 
 		} else if (la.kind == 5) {
 			Get();
 			val=new ValueType{StringValue=t.val,TypeHint=ConstType.Number}; 
-		} else if (la.kind == 13) {
+		} else if (la.kind == 14) {
 			Get();
 			ValueList(out inner);
 			val=new ValueType{ArrayValue=inner.ToArray(), TypeHint=ConstType.Array}; 
-			Expect(14);
-		} else SynErr(21);
+			Expect(15);
+		} else SynErr(23);
 	}
 
 	void ValueList(out IEnumerable<ValueType > elements ) {
 		var rv=new List<ValueType >(); elements=rv; ValueType elem; IEnumerable<ValueType > inner; 
 		Value(out elem);
 		rv.Add(elem); 
-		if (la.kind == 10) {
+		if (la.kind == 11) {
 			Get();
 			ValueList(out inner);
 			rv.AddRange(inner); 
@@ -180,20 +181,33 @@ internal string oneParam,tableName;
 		Expect(6);
 		Expect(8);
 		Field(out tableName);
-		if (la.kind == 15) {
+		if (la.kind == 16) {
 			Get();
 			FieldList(out fieldList);
-			Expect(16);
+			Expect(17);
+		}
+		if (la.kind == 9) {
+			Get();
+			ValueType ignore; 
+			Expect(1);
+			Expect(18);
+			Value(out ignore);
+			while (la.kind == 11) {
+				Get();
+				Expect(1);
+				Expect(18);
+				Value(out ignore);
+			}
 		}
 		Expect(7);
-		if (la.kind == 11 || la.kind == 12) {
+		if (la.kind == 12 || la.kind == 13) {
 			Parameter(out oneParam);
-		} else if (la.kind == 15) {
+		} else if (la.kind == 16) {
 			Get();
 			ValueList(out valueList);
-			Expect(16);
-		} else SynErr(22);
-		while (la.kind == 17) {
+			Expect(17);
+		} else SynErr(24);
+		while (la.kind == 19) {
 			Get();
 		}
 	}
@@ -210,7 +224,7 @@ internal string oneParam,tableName;
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x}
 
 	};
 } // end Parser
@@ -233,20 +247,22 @@ internal class Errors {
 			case 6: s = "insert expected"; break;
 			case 7: s = "values expected"; break;
 			case 8: s = "into expected"; break;
-			case 9: s = "\".\" expected"; break;
-			case 10: s = "\",\" expected"; break;
-			case 11: s = "\"@\" expected"; break;
-			case 12: s = "\":\" expected"; break;
-			case 13: s = "\"[\" expected"; break;
-			case 14: s = "\"]\" expected"; break;
-			case 15: s = "\"(\" expected"; break;
-			case 16: s = "\")\" expected"; break;
-			case 17: s = "\";\" expected"; break;
-			case 18: s = "??? expected"; break;
-			case 19: s = "invalid Identifier"; break;
-			case 20: s = "invalid Parameter"; break;
-			case 21: s = "invalid Value"; break;
-			case 22: s = "invalid Insert"; break;
+			case 9: s = "settings expected"; break;
+			case 10: s = "\".\" expected"; break;
+			case 11: s = "\",\" expected"; break;
+			case 12: s = "\"@\" expected"; break;
+			case 13: s = "\":\" expected"; break;
+			case 14: s = "\"[\" expected"; break;
+			case 15: s = "\"]\" expected"; break;
+			case 16: s = "\"(\" expected"; break;
+			case 17: s = "\")\" expected"; break;
+			case 18: s = "\"=\" expected"; break;
+			case 19: s = "\";\" expected"; break;
+			case 20: s = "??? expected"; break;
+			case 21: s = "invalid Identifier"; break;
+			case 22: s = "invalid Parameter"; break;
+			case 23: s = "invalid Value"; break;
+			case 24: s = "invalid Insert"; break;
 
 			default: s = "error " + n; break;
 		}
