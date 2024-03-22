@@ -5,9 +5,13 @@ rules however this is intentional.
 
 А ещё есть описание по-русски, см. ниже.
 ## Changelog
+v.2.0.3: Added support for `INSERT ... SETTINGS setting=value` syntax.
+
 v.2.0.2.1 and v.2.0.2.2: Added net461 target and downgraded K4os.Compression.LZ4 requirement for it.
 
 v.2.0.2: Switched to async IO, implemented System.Data.Common stuff like DbProviderFactory. Added support for IPv4 and IPv6 columns.
+
+1.5.6-no-polling-on-tls: Backported changes from 2.0.3.
 
 v.1.5.5-no-polling-on-tls: Patched a bug preventing SSL/TLS secured connections from working properly.
 
