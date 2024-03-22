@@ -208,8 +208,8 @@ internal class UTF8Buffer: Buffer {
 internal class Scanner {
 	const char EOL = '\n';
 	const int eofSym = 0; /* pdt */
-	const int maxT = 18;
-	const int noSym = 18;
+	const int maxT = 20;
+	const int noSym = 20;
 	char valCh;       // current input character (for token.val)
 
 	public Buffer buffer; // scanner buffer
@@ -237,7 +237,7 @@ internal class Scanner {
 		start[96] = 3; 
 		start[34] = 5; 
 		start[39] = 7; 
-		start[46] = 26; 
+		start[46] = 27; 
 		for (int i = 43; i <= 43; ++i) start[i] = 9;
 		for (int i = 45; i <= 45; ++i) start[i] = 9;
 		start[44] = 18; 
@@ -247,7 +247,8 @@ internal class Scanner {
 		start[93] = 22; 
 		start[40] = 23; 
 		start[41] = 24; 
-		start[59] = 25; 
+		start[61] = 25; 
+		start[59] = 26; 
 		start[Buffer.EOF] = -1;
 
 	}
@@ -321,6 +322,7 @@ internal class Scanner {
 			case "insert": t.kind = 6; break;
 			case "values": t.kind = 7; break;
 			case "into": t.kind = 8; break;
+			case "settings": t.kind = 9; break;
 			default: break;
 		}
 	}
@@ -411,25 +413,27 @@ internal class Scanner {
 				if (ch == '"' || ch == 39 || ch == 92 || ch == '`') {AddCh(); goto case 7;}
 				else {goto case 0;}
 			case 18:
-				{t.kind = 10; break;}
-			case 19:
 				{t.kind = 11; break;}
-			case 20:
+			case 19:
 				{t.kind = 12; break;}
-			case 21:
+			case 20:
 				{t.kind = 13; break;}
-			case 22:
+			case 21:
 				{t.kind = 14; break;}
-			case 23:
+			case 22:
 				{t.kind = 15; break;}
-			case 24:
+			case 23:
 				{t.kind = 16; break;}
-			case 25:
+			case 24:
 				{t.kind = 17; break;}
+			case 25:
+				{t.kind = 18; break;}
 			case 26:
-				recEnd = pos; recKind = 9;
+				{t.kind = 19; break;}
+			case 27:
+				recEnd = pos; recKind = 10;
 				if (ch >= '0' && ch <= '9') {AddCh(); goto case 13;}
-				else {t.kind = 9; break;}
+				else {t.kind = 10; break;}
 
 		}
 		t.val = new String(tval, 0, tlen);

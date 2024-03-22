@@ -25,6 +25,7 @@ numValue=["-"|"+"]((digit{digit}["."{digit}])|("."digit{digit})).
 insert="INSERT".
 values="VALUES".
 into="INTO".
+settings="SETTINGS".
 IGNORE
 '\r'+'\n'+'\t'
 PRODUCTIONS
@@ -83,6 +84,20 @@ Insert	(.  .)
 	"("
 	FieldList<out fieldList>
 	")"
+	]
+	[ 
+	settings
+	(. ValueType ignore; .)
+	ident
+	"="
+	Value<out ignore>
+	{
+	    ","
+		ident
+     	"="
+     	Value<out ignore>
+
+	}
 	]
 	values
 	(

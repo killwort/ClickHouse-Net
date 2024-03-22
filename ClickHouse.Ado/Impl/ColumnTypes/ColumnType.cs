@@ -117,7 +117,7 @@ namespace ClickHouse.Ado.Impl.ColumnTypes {
             if (m.Success) return new DateTimeColumnType();
             m = NestedRegex.Match(name);
             if (m.Success)
-                switch (m.Groups["outer"].Value) {
+                switch (m.Groups["outer"].Value) { 
                     case "Nullable":
                         return new NullableColumnType(Create(m.Groups["inner"].Value));
                     case "LowCardinality":
