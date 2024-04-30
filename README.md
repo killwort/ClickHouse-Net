@@ -5,13 +5,15 @@ rules however this is intentional.
 
 А ещё есть описание по-русски, см. ниже.
 ## Changelog
+v.2.0.4: Fixed connection becoming unusable after any recoverable error.
+
 v.2.0.3: Added support for `INSERT ... SETTINGS setting=value` syntax.
 
 v.2.0.2.1 and v.2.0.2.2: Added net461 target and downgraded K4os.Compression.LZ4 requirement for it.
 
 v.2.0.2: Switched to async IO, implemented System.Data.Common stuff like DbProviderFactory. Added support for IPv4 and IPv6 columns.
 
-1.5.6-no-polling-on-tls: Backported changes from 2.0.3.
+v.1.5.6-no-polling-on-tls: Backported changes from 2.0.3.
 
 v.1.5.5-no-polling-on-tls: Patched a bug preventing SSL/TLS secured connections from working properly.
 
@@ -98,9 +100,15 @@ If you need some functionality or found a bug but unable to implement/fix it, pl
 .NET драйвер для [Yandex ClickHouse](http://clickhouse.yandex). В отличие от официального JDBC клиента этот драйвер не является обёрткой поверх ClickHouse HTTP, а реализует нативный протокол. Протокол (и части его реализации) нагло выдраны из исходников самого ClickHouse. В некоторых случаях этот драйвер ведёт себя не так, как обычные ADO.NET драйверы, это сделано намеренно и связано со спецификой ClickHouse.
 
 ## Важные изменения
+v.2.0.4: Исправлена поломка соединения после любой, даже восстановимой ошибки.
+
+v.2.0.3: Добавлена поддержка подвыражения `SETTINGS` в SQL командах `INSERT`.
+
 v.2.0.2.1 и v.2.0.2.2: Добавлена цель net461 и для неё снижено требование к версии K4os.Compression.LZ4.
 
 v.2.0.2: Переход на асинхронный ввод/вывод, реализация всякого из System.Data.Common, в том числе DbProviderFactory. Добавлена поддержка типов IPv4 and IPv6.
+
+v.1.5.6-no-polling-on-tls: Бэкпортированы изменения из 2.0.3.
 
 v.1.5.5-no-polling-on-tls: "Исправлен" баг с повисаниями на соединениях использующих SSL/TLS.
 
