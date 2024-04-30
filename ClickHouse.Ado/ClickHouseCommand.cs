@@ -98,7 +98,15 @@ public class ClickHouseCommand : DbCommand, IDbCommand {
         //For the weird folks who change Connection in between of Execute and actual reading the result.
         var tempConnection = (ClickHouseConnection)DbConnection;
         await Execute(false, tempConnection, cToken);
-        return new ClickHouseDataReader(tempConnection, behavior);
+        try
+        {
+            return new ClickHouseDataReader(tempConnection, behavior);
+        }
+        catch
+        {
+            tempConnection.DialogueLock.Release();
+            throw;
+        }
     }
 
     /// <inheritdoc />
@@ -124,17 +132,20 @@ public class ClickHouseCommand : DbCommand, IDbCommand {
         if (CommandTimeout > 0)
             cToken = CancellationTokenSource.CreateLinkedTokenSource(cToken, new CancellationTokenSource(TimeSpan.FromSeconds(CommandTimeout)).Token).Token;
         await connection.DialogueLock.WaitAsync(cToken);
-        try {
+        try
+        {
             if (connection.State != ConnectionState.Open) throw new InvalidOperationException("Connection isn't open");
 
             var insertParser = new Parser(new Scanner(new MemoryStream(Encoding.UTF8.GetBytes(CommandText))));
             insertParser.errors.errorStream = new StringWriter();
             insertParser.Parse();
 
-            if (insertParser.errors.count == 0) {
+            if (insertParser.errors.count == 0)
+            {
                 var xText = new StringBuilder("INSERT INTO ");
                 xText.Append(insertParser.tableName);
-                if (insertParser.fieldList != null) {
+                if (insertParser.fieldList != null)
+                {
                     xText.Append("(");
                     insertParser.fieldList.Aggregate(xText, (builder, fld) => builder.Append(fld).Append(','));
                     xText.Remove(xText.Length - 1, 1);
@@ -145,12 +156,16 @@ public class ClickHouseCommand : DbCommand, IDbCommand {
 
                 await connection.Formatter.RunQuery(xText.ToString(), QueryProcessingStage.Complete, null, null, null, false, cToken);
                 var schema = await connection.Formatter.ReadSchema(cToken);
-                if (insertParser.oneParam != null) {
-                    if (Parameters[insertParser.oneParam].Value is IBulkInsertEnumerable bulkInsertEnumerable) {
+                if (insertParser.oneParam != null)
+                {
+                    if (Parameters[insertParser.oneParam].Value is IBulkInsertEnumerable bulkInsertEnumerable)
+                    {
                         var index = 0;
                         foreach (var col in schema.Columns)
                             col.Type.ValuesFromConst(bulkInsertEnumerable.GetColumnData(index++, col.Name, col.Type.AsClickHouseType(ClickHouseTypeUsageIntent.Generic)));
-                    } else {
+                    }
+                    else
+                    {
                         var table = ((IEnumerable)Parameters[insertParser.oneParam].Value).OfType<IEnumerable>();
                         var colCount = table.First().Cast<object>().Count();
                         if (colCount != schema.Columns.Count)
@@ -161,7 +176,8 @@ public class ClickHouseCommand : DbCommand, IDbCommand {
                         var index = 0;
                         cl = table.Aggregate(
                             cl,
-                            (colList, row) => {
+                            (colList, row) =>
+                            {
                                 index = 0;
                                 foreach (var cval in row) colList[index++].Add(cval);
 
@@ -171,12 +187,15 @@ public class ClickHouseCommand : DbCommand, IDbCommand {
                         index = 0;
                         foreach (var col in schema.Columns) col.Type.ValuesFromConst(cl[index++]);
                     }
-                } else {
+                }
+                else
+                {
                     if (schema.Columns.Count != insertParser.valueList.Count())
                         throw new FormatException($"Value count mismatch. Server expected {schema.Columns.Count} and query contains {insertParser.valueList.Count()}.");
 
                     var valueList = insertParser.valueList as List<Parser.ValueType> ?? insertParser.valueList.ToList();
-                    for (var i = 0; i < valueList.Count; i++) {
+                    for (var i = 0; i < valueList.Count; i++)
+                    {
                         var val = valueList[i];
                         if (val.TypeHint == Parser.ConstType.Parameter)
                             schema.Columns[i].Type.ValueFromParam(Parameters[val.StringValue]);
@@ -186,13 +205,17 @@ public class ClickHouseCommand : DbCommand, IDbCommand {
                 }
 
                 await connection.Formatter.SendBlocks(new[] { schema }, cToken);
-            } else {
+            }
+            else
+            {
                 await connection.Formatter.RunQuery(SubstituteParameters(CommandText), QueryProcessingStage.Complete, null, null, null, false, cToken);
             }
 
             if (!readResponse) return;
             await connection.Formatter.ReadResponse(cToken);
-        } finally {
+        }
+        finally
+        {
             if (readResponse) connection.DialogueLock.Release();
         }
     }
