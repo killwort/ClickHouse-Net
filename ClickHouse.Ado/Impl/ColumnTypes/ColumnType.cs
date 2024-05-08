@@ -144,6 +144,17 @@ internal abstract class ColumnType {
                         throw new FormatException($"Bad enum description: {m.Groups["inner"].Value}.");
                     return new TupleColumnType(parser.result.Select(x => Create(x)));
                 }
+                case "Map": {
+                    var parser = new ATG.IdentList.Parser(new Scanner(new MemoryStream(Encoding.UTF8.GetBytes(m.Groups["inner"].Value))));
+                    parser.Parse();
+                    if (parser.errors is { count: > 0 })
+                        throw new FormatException($"Bad enum description: {m.Groups["inner"].Value}.");
+                    
+                    if (parser.result.Count() != 2)
+                        throw new FormatException($"Map column type must have exactly 2 elements: {m.Groups["inner"].Value}.");
+                    
+                    return new MapColumnType(Create(parser.result.First()), Create(parser.result.Last()));
+                }
                 case "Enum8":
                 case "Enum16": {
                     var parser = new ATG.Enums.Parser(new ATG.Enums.Scanner(new MemoryStream(Encoding.UTF8.GetBytes(m.Groups["inner"].Value))));
