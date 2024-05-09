@@ -36,6 +36,7 @@ internal abstract class ColumnType {
         { "TINYTEXT", "String" },
         { "LONGTEXT", "String" },
         { "BLOB", "String" },
+        { "JSON", "String" },
 
         //Clickhouse-specific aliases
         { "Decimal", "Decimal" },
@@ -73,11 +74,12 @@ internal abstract class ColumnType {
         { "Bool", typeof(BooleanColumnType) }
     };
 
+    private static readonly Regex ObjectRegex = new(@"^Object\s*\(\s*'json'\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex FixedStringRegex = new(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex NestedRegex = new(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
     private static readonly Regex DecimalRegex = new(@"^Decimal(((?<dlen>(32|64|128|256))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex DateTime64Regex = new(@"^DateTime64\s*\(\s*(?<prec>\d+)\s*(,\s*'(?<tz>([^']|(\\'))*)'\s*)?\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex DateTimeRegex = new(@"^DateTime\s*\('[^']|(\\')*'\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex DateTimeRegex = new(@"^DateTime\s*\('([^']|(\\'))*'\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     public virtual bool IsNullable => false;
     public abstract int Rows { get; }
 
@@ -116,6 +118,8 @@ internal abstract class ColumnType {
             return new DecimalColumnType(len, uint.Parse(m.Groups["prec"].Value));
         }
 
+        m = ObjectRegex.Match(name);
+        if (m.Success) return new StringColumnType();
         m = DateTime64Regex.Match(name);
         if (m.Success) return new DateTime64ColumnType(int.Parse(m.Groups["prec"].Value), ProtocolFormatter.UnescapeStringValue(m.Groups["tz"].Value));
         m = DateTimeRegex.Match(name);

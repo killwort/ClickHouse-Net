@@ -19,9 +19,9 @@ public class ClickHouseConnectionSettings {
 
     static ClickHouseConnectionSettings() {
 #if CORE_FRAMEWORK
-        Properties = typeof(ClickHouseConnectionSettings).GetTypeInfo().GetProperties().ToDictionary(x => x.Name, x => x);
+        Properties = typeof(ClickHouseConnectionSettings).GetTypeInfo().GetProperties().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
 #else
-        Properties = typeof(ClickHouseConnectionSettings).GetProperties().ToDictionary(x => x.Name, x => x);
+        Properties = typeof(ClickHouseConnectionSettings).GetProperties().ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
 #endif
     }
 

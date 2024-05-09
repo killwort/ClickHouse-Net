@@ -5,6 +5,8 @@ rules however this is intentional.
 
 А ещё есть описание по-русски, см. ниже.
 ## Changelog
+v.2.0.5: Support for Map columns (thanks to @jorgeparavicini). Provisional support for JSON columns. Case-insensitive connection strings.
+
 v.2.0.4: Fixed connection becoming unusable after any recoverable error.
 
 v.2.0.3: Added support for `INSERT ... SETTINGS setting=value` syntax.
@@ -100,6 +102,8 @@ If you need some functionality or found a bug but unable to implement/fix it, pl
 .NET драйвер для [Yandex ClickHouse](http://clickhouse.yandex). В отличие от официального JDBC клиента этот драйвер не является обёрткой поверх ClickHouse HTTP, а реализует нативный протокол. Протокол (и части его реализации) нагло выдраны из исходников самого ClickHouse. В некоторых случаях этот драйвер ведёт себя не так, как обычные ADO.NET драйверы, это сделано намеренно и связано со спецификой ClickHouse.
 
 ## Важные изменения
+v.2.0.5: Поддержка Map колонок (спасибо @jorgeparavicini). Предварительная поддержка JSON колонок. Строки соединения игнорируют регистр символов (названий).
+
 v.2.0.4: Исправлена поломка соединения после любой, даже восстановимой ошибки.
 
 v.2.0.3: Добавлена поддержка подвыражения `SETTINGS` в SQL командах `INSERT`.
