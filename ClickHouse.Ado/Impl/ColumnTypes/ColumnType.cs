@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +36,6 @@ internal abstract class ColumnType {
         { "TINYTEXT", "String" },
         { "LONGTEXT", "String" },
         { "BLOB", "String" },
-        { "JSON", "String" },
 
         //Clickhouse-specific aliases
         { "Decimal", "Decimal" },
@@ -45,7 +44,8 @@ internal abstract class ColumnType {
         { "Decimal128", "Decimal128" },
         { "Decimal256", "Decimal256" },
         { "Date", "Date" },
-        { "DateTime", "DateTime" }
+        { "DateTime", "DateTime" },
+        { "JSON", "Object('json')" }
     };
 
     private static readonly Dictionary<string, Type> Types = new() {
@@ -71,10 +71,10 @@ internal abstract class ColumnType {
         { Ipv4ColumnType.Ipv4ColumnTypeName, typeof(Ipv4ColumnType) },
         { Ipv6ColumnType.Ipv6ColumnTypeName, typeof(Ipv6ColumnType) },
         { "Nothing", typeof(NullColumnType) },
-        { "Bool", typeof(BooleanColumnType) }
+        { "Bool", typeof(BooleanColumnType) },
+        { "Object('json')", typeof(JsonColumnType) }
     };
 
-    private static readonly Regex ObjectRegex = new(@"^Object\s*\(\s*'json'\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex FixedStringRegex = new(@"^FixedString\s*\(\s*(?<len>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex NestedRegex = new(@"^(?<outer>\w+)\s*\(\s*(?<inner>.+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
     private static readonly Regex DecimalRegex = new(@"^Decimal(((?<dlen>(32|64|128|256))\s*\()|\s*\(\s*(?<len>\d+)\s*,)\s*(?<prec>\d+)\s*\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -118,8 +118,6 @@ internal abstract class ColumnType {
             return new DecimalColumnType(len, uint.Parse(m.Groups["prec"].Value));
         }
 
-        m = ObjectRegex.Match(name);
-        if (m.Success) return new StringColumnType();
         m = DateTime64Regex.Match(name);
         if (m.Success) return new DateTime64ColumnType(int.Parse(m.Groups["prec"].Value), ProtocolFormatter.UnescapeStringValue(m.Groups["tz"].Value));
         m = DateTimeRegex.Match(name);

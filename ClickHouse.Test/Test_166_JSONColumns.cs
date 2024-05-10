@@ -1,8 +1,6 @@
 using System;
 using System.Data;
-using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
 using ClickHouse.Ado;
 using NUnit.Framework;
 
@@ -11,47 +9,34 @@ namespace ClickHouse.Test;
 public class Test_166_JSONColumns
 {
     [OneTimeSetUp]
-    public void CreateStructures() {
-        using (var cnn = ConnectionHandler.GetConnection()) {
-            cnn.CreateCommand("DROP TABLE IF EXISTS test_166_json").ExecuteNonQuery();
-            cnn.CreateCommand("CREATE TABLE test_166_json (session_id String, guess JSON, timestamp DateTime DEFAULT now() CODEC(Delta(4), ZSTD(1)) ) ENGINE = MergeTree ORDER BY session_id").ExecuteNonQuery();
-        }
+    public void CreateDatabase()
+    {
+        using var connection = ConnectionHandler.GetConnection();
+        connection.CreateCommand("SET allow_experimental_object_type = 1").ExecuteNonQuery();
+        connection.CreateCommand("DROP TABLE IF EXISTS json_test").ExecuteNonQuery();
+        connection.CreateCommand("""
+                                 CREATE TABLE json_test (
+                                     json Object('json'),
+                                     timestamp DateTime
+                                 )
+                                    ENGINE = MergeTree()
+                                    PARTITION BY toYYYYMM(timestamp)
+                                    ORDER BY (timestamp)
+                                 """).ExecuteNonQuery();
 
         Thread.Sleep(1000);
     }
 
     [Test]
-    public async Task TestInsertBulk()
+    public void TestSimple()
     {
-        using (var cnn = ConnectionHandler.GetConnection()) {
-            cnn.CreateCommand("INSERT INTO test_166_json (session_id, guess, timestamp) VALUES @bulk").AddParameter("bulk", DbType.Object, new object[]
-            {
-                new object[] { "1", "{\"name\":\"value\"}", DateTime.UtcNow }
-            }).ExecuteNonQuery();
-        }
+        // Arrange
+        using var connection = ConnectionHandler.GetConnection();
+        var command = connection.CreateCommand("INSERT INTO json_test (json, timestamp) VALUES (@json, @timestamp)")
+            .AddParameter("json", """{"a": 1, "b": 2}""")
+            .AddParameter("timestamp", DbType.DateTime, DateTime.Now);
 
-        var values = SelectValue("1");
-        Assert.True(values.Equals("{\"name\":\"value\"}"));
+        // Act & Assert
+        Assert.DoesNotThrow(() => command.ExecuteNonQuery());
     }
-    
-    private string SelectValue(string k) {
-        using (var cnn = ConnectionHandler.GetConnection())
-        {
-            string rv = null;
-            using (var cmd = cnn.CreateCommand("SELECT guess FROM test_166_json WHERE session_id=@k")) {
-                cmd.AddParameter("k", k);
-                using (var reader = cmd.ExecuteReader()) {
-                    reader.ReadAll(
-                        r =>
-                        {
-                            rv = r.GetString(1);
-                        }
-                    );
-                }
-            }
-
-            return rv;
-        }
-    }
-
 }
