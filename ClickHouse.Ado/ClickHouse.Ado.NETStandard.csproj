@@ -31,6 +31,8 @@
             del /q $(SolutionDir).lock
             :end
         </PreBuildEvent>
+        <SignAssembly>True</SignAssembly>
+        <AssemblyOriginatorKeyFile>..\key.snk</AssemblyOriginatorKeyFile>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)'!='net462' and '$(TargetFramework)'!='net461'">
         <DefineConstants>$(DefineConstants);CORE_FRAMEWORK</DefineConstants>
@@ -43,12 +45,12 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)'!='net461'">
-        <PackageReference Include="K4os.Compression.LZ4" Version="1.3.7-beta"/>
+        <PackageReference Include="K4os.Compression.LZ4" Version="1.3.7-beta" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)'=='net461'">
-        <PackageReference Include="K4os.Compression.LZ4" Version="1.2.16"/>
+        <PackageReference Include="K4os.Compression.LZ4" Version="1.2.16" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 </Project>

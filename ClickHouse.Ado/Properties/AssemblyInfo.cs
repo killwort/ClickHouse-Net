@@ -34,4 +34,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.1.1.0")]
 [assembly: AssemblyFileVersion("1.1.1.0")]
-[assembly: InternalsVisibleTo("ClickHouse.Test")]
+[assembly: InternalsVisibleTo("ClickHouse.Test, PublicKey=0024000004800000940000000602000000240000525341310004000001000100552a08bc769da3115b47cdf62f609d20b92025ee106a009111afeba3a6f34833f534cf65dbe202abaa11b5e716af85317d5deacf1df5971707292fbb77ee765b9b772a053d3dd0669b11d27d8a5cad552deef048677c02f0f3fd9da351610033c45c4f4e4d7b2710e5f0019b8fedc53eebb7e1cf32e7fc66e88f288ae48566c3")]
