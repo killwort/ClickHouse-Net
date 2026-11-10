@@ -5,6 +5,8 @@ rules however this is intentional.
 
 А ещё есть описание по-русски, см. ниже.
 ## Changelog
+v.2.1.0: Support for ZStd decompression (compression still fails). Automatic decompression algorithm selection.
+
 v.2.0.5: Support for Map columns (thanks to @jorgeparavicini). Provisional support for JSON columns. Case-insensitive connection strings.
 
 v.2.0.4: Fixed connection becoming unusable after any recoverable error.
@@ -37,6 +39,8 @@ v.1.2.6: Added (quite limited) support for timezones.
 In order to wrap your clickhouse connection in SSL/TLS tunnel you should enable is on your server first (`tcp_port_secure` setting in the config.xml) and add `Encrypt=True` to the connection string (do not forget to change port number).
 
 SSL/TLS was not working properly before 1.5.5 and led to infinite wait for data to arrive. It was 'patched' in 1.5.5-no-polling-on-tls version and completely mitigated in 2.x+.
+### Compression support
+Before version 2.1.0, only the LZ4 algorithm was supported. However, with the release of clickhouse-server 26.9, the server now uses ZStd by default; consequently, version 2.1.0 includes automatic detection of the algorithm used by the server and support for reading ZStd. Technically, it is possible to specify ZStd compression in the connection string, but the server will not be able to read the compressed data.
 ### Raw SQL debug output
 If you'd like to see all queries emitted by the driver to the server add `Trace=True` to the connection string and set up a .NET trace listener for the category `ClickHouse.Ado`.  
 ### No multiple queries
@@ -102,6 +106,8 @@ If you need some functionality or found a bug but unable to implement/fix it, pl
 .NET драйвер для [Yandex ClickHouse](http://clickhouse.yandex). В отличие от официального JDBC клиента этот драйвер не является обёрткой поверх ClickHouse HTTP, а реализует нативный протокол. Протокол (и части его реализации) нагло выдраны из исходников самого ClickHouse. В некоторых случаях этот драйвер ведёт себя не так, как обычные ADO.NET драйверы, это сделано намеренно и связано со спецификой ClickHouse.
 
 ## Важные изменения
+v.2.1.0: Поддержка распаковки ZStd (сжатие всё ещё не работает). Автоматический выбор алгоритма сжатия.
+
 v.2.0.5: Поддержка Map колонок (спасибо @jorgeparavicini). Предварительная поддержка JSON колонок. Строки соединения игнорируют регистр символов (названий).
 
 v.2.0.4: Исправлена поломка соединения после любой, даже восстановимой ошибки.
@@ -134,6 +140,8 @@ v.1.2.6: Добавлена ограниченная поддержка врем
 Чтобы завернуть протокол кликхауса в SSL/TLS тунель надо, во-первых, включить SSL на сервере (настройка `tcp_port_secure` в config.xml), и, затем, добавить `Encrypt=True` в строку соединения (также не забыть сменить используемый номер порта).
 
 До версии 1.5.5-no-polling-on-tls SSL/TLS нормально не работал и приводил к зависаниям. В 1.5.5-no-polling-on-tls это было "исправлено", а в версиях 2.х+ полностью устранено.
+### Поддержка сжатия
+До версии 2.1.0 поддерживался только алгоритм LZ4. Однако, с выходом clickhouse-server 26.9, сервер по умолчанию использует ZStd, так что в 2.1.0 добавлено автоопределение используемого сервером алгоритма и поддержка чтения ZStd. Формально, в строке соединения можно задать и запись в ZStd, но сервер не сможет прочитать запакованные данные.
 ### Отладочный вывод SQL
 Если хочется видеть какие SQL драйвер посылает серверу, то в строку соединения надо добавить `Trace=True` и включить слушатель трассировки для категории `ClickHouse.Ado`.
 ### Нет поддержки нескольких запросов
