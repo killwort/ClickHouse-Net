@@ -30,14 +30,17 @@ namespace ClickHouse.Ado.Impl.Compress
             var uncompressedSize = BitConverter.ToInt32(header, 5);
             var read = 0;
             compressedSize -= header.Length;
-            var compressedBytes = new byte[compressedSize];
-            do
-            {
-                read += compressed.Read(compressedBytes, read, compressedSize - read);
+            var compressedBytes = new byte[compressedSize + header.Length];
+            Array.Copy(header, 0, compressedBytes, 0, header.Length);
+            do {
+                read += compressed.Read(compressedBytes, header.Length + read, compressedSize - read);
             } while (read < compressedSize);
+
             compressedHash = ClickHouseCityHash.CityHash128(compressedBytes);
+            var uncompressed = new byte[uncompressedSize];
             var decomp = new ZstdSharp.Decompressor();
-            return decomp.Unwrap(compressedBytes, uncompressedSize).ToArray();
+            decomp.Unwrap(compressedBytes, header.Length, compressedSize, uncompressed, 0, uncompressedSize);
+            return uncompressed;
         }
     }
 }

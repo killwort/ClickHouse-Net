@@ -192,7 +192,7 @@ public class ClickHouseConnectionSettings {
     /// <summary>
     ///     Check hashes of compressed data. Should be left on (default).
     /// </summary>
-    public bool CheckCompressedHash { get; set; } = false;
+    public bool CheckCompressedHash { get; set; } = true;
 
     /// <summary>
     ///     Ignored.
